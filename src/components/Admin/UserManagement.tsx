@@ -1,0 +1,334 @@
+import React, { useState, useEffect } from "react";
+import { Plus, Edit, Trash2, Search, Filter } from "lucide-react";
+import { useApp } from "../../context/AppContext";
+import { User } from "../../types";
+import { getGroupTheme } from "../../utils/calculations";
+import UserForm from "./UserForm";
+import ConfirmDialog from "../Common/ConfirmDialog";
+import MemberDetails from "../BranchLead/MemberDetails";
+import { deleteUser, fetchUsers } from "../../utils/api";
+import { useNavigate } from "react-router-dom";
+
+const UserManagement: React.FC = () => {
+  const { state, dispatch } = useApp();
+  const users = state.users.filter((user) => user.role !== "admin");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterRole, setFilterRole] = useState("");
+  const [filterGroup, setFilterGroup] = useState("");
+  const [showUserForm, setShowUserForm] = useState(false);
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [showMemberDetails, setShowMemberDetails] = useState(false);
+  const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const navigate = useNavigate();
+
+  const token = localStorage.getItem("token");
+
+  useEffect(() => {
+    if (!token) {
+      navigate("/login");
+      return;
+    }
+
+    const loadUsers = async () => {
+      try {
+        // Fetch users from backend
+        const usersFromBackend = await fetchUsers();
+        // Map branch to group for frontend
+        const mappedUsers = usersFromBackend.map((user:any) => ({
+          ...user,
+          id: user.id || user._id, // Ensure every user has an id property
+          group: user.branch,
+        }));
+        dispatch({ type: "LOAD_USERS", payload: mappedUsers });
+      } catch (err) {
+        console.error("Failed to fetch users from backend", err);
+      }
+    };
+    loadUsers();
+  }, [token, navigate, dispatch]);
+
+  const filteredUsers = users.filter((user) => {
+    const matchesSearch =
+      (user.firstName &&
+        user.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.email &&
+        user.email.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesRole = !filterRole || user.role === filterRole;
+    const matchesGroup = !filterGroup || user.branch === filterGroup;
+
+    return matchesSearch && matchesRole && matchesGroup;
+  });
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setShowUserForm(true);
+  };
+
+  const handleDeleteUser = (user: User) => {
+    console.log("this is user", user);
+    setDeletingUser(user);
+  };
+
+  const confirmDelete = async () => {
+    if (deletingUser) {
+      try {
+        await deleteUser(deletingUser.id);
+        dispatch({ type: "DELETE_USER", payload: deletingUser.id });
+      } catch (error) {
+        // Optionally handle error (e.g., show notification)
+        console.error("Failed to delete user in backend", error);
+      }
+      setDeletingUser(null);
+    }
+  };
+
+  const handleFormClose = () => {
+    setShowUserForm(false);
+    setEditingUser(null);
+  };
+
+  const handleAddMoney = (user: User) => {
+    setSelectedMemberId(user.id);
+    setShowMemberDetails(true);
+  };
+
+  const getRoleBadgeColor = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "bg-purple-100 text-purple-800";
+      case "branch_lead":
+        return "bg-emerald-100 text-emarald-800";
+      case "member":
+        return "bg-emerald-100 text-emerald-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getRoleDisplay = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "Administrator";
+      case "branch_lead":
+        return "Branch Lead";
+      case "member":
+        return "Member";
+      default:
+        return role;
+    }
+  };
+
+  console.log("those are users", users);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold text-gray-900">
+            User Management
+          </h2>
+          <p className="text-sm text-gray-600">
+            Manage system users and their permissions
+          </p>
+        </div>
+        <button
+          onClick={() => setShowUserForm(true)}
+          className="inline-flex items-center px-4 py-2 bg-emerald-700 text-white rounded-lg hover:text-emerald-700 hover:bg-white hover:border border-emerald-600 transition-colors"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add User
+        </button>
+      </div>
+
+      {/* Filters */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+          </div>
+
+          <select
+            value={filterRole}
+            onChange={(e) => setFilterRole(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+            <option value="">All Roles</option>
+            <option value="admin">Administrator</option>
+            <option value="branch_lead">Branch Lead</option>
+            <option value="member">Member</option>
+          </select>
+
+          <select
+            value={filterGroup}
+            onChange={(e) => setFilterGroup(e.target.value)}
+            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+          >
+            <option value="">All Groups</option>
+            <option value="blue">blue Group</option>
+            <option value="yellow">Yellow Group</option>
+            <option value="red">Red Group</option>
+            <option value="purple">Purple Group</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  User
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Role
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Group
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Savings
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredUsers.map((user) => {
+                const theme = getGroupTheme(
+                  (user.branch || "blue").toLowerCase()
+                );
+                return (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {user.firstName}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {user.email}
+                        </div>
+                        {user.branch && (
+                          <div className="text-xs text-gray-400">
+                            {user.branch}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs text-emerald-700 font-semibold rounded-full ${getRoleBadgeColor(
+                          user.role
+                        )}`}
+                      >
+                        {getRoleDisplay(user.role)}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div
+                          className={`w-3 h-3 rounded-full mr-2 ${theme.primary}`}
+                        />
+                        <span className="text-sm text-gray-900 capitalize">
+                          {user.branch}
+                        </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {typeof user.totalContributions === "number"
+                        ? user.totalContributions.toLocaleString()
+                        : "0"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          user.activeLoan?.status
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-emerald-100 text-emerald-800"
+                        }`}
+                      >
+                        {user.activeLoan?.status ? "Has Loan" : "Active"}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <div className="flex items-center justify-end space-x-2">
+                        <button
+                          onClick={() => handleEditUser(user)}
+                          className="text-emerald-600 hover:text-emerald-900 p-1"
+                          title="Edit user"
+                        >
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteUser(user)}
+                          className="text-red-600 hover:text-red-900 p-1"
+                          title="Delete user"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={() => handleAddMoney(user)}
+                          className="text-blue-600 hover:text-blue-900 p-1"
+                          title="Add Money"
+                        >
+                          <Plus className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {filteredUsers.length === 0 && (
+          <div className="text-center py-8">
+            <Filter className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">
+              No users found matching your criteria
+            </p>
+          </div>
+        )}
+      </div>
+
+      {showUserForm && (
+        <UserForm user={editingUser} onClose={handleFormClose} />
+      )}
+
+      {deletingUser && (
+        <ConfirmDialog
+          title="Delete User"
+          message={`Are you sure you want to delete ${deletingUser.firstName}? This action cannot be undone.`}
+          confirmText="Delete"
+          confirmVariant="danger"
+          onConfirm={confirmDelete}
+          onCancel={() => setDeletingUser(null)}
+        />
+      )}
+
+      {showMemberDetails && selectedMemberId && (
+        <MemberDetails
+          memberId={selectedMemberId}
+          canEdit={true}
+          onClose={() => setShowMemberDetails(false)}
+        />
+      )}
+    </div>
+  );
+};
+
+export default UserManagement;
