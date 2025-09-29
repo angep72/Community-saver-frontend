@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { LogIn, ChevronDown } from "lucide-react";
+import { LogIn, ChevronDown, Eye, EyeOff } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { registerUser } from "../../utils/api";
 
@@ -12,6 +12,7 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<"member" | "admin" | "branch_lead">(
     "member"
   );
@@ -20,9 +21,12 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
   );
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [passwordMatchError, setPasswordMatchError] = useState("");
 
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const roleOptions: ("member" | "admin" | "branch_lead")[] = ["member"];
   const groupOptions: ("blue" | "yellow" | "red" | "purple")[] = [
@@ -54,6 +58,14 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
     };
   }, []);
 
+  useEffect(() => {
+    if (confirmPassword && password !== confirmPassword) {
+      setPasswordMatchError("Passwords do not match");
+    } else {
+      setPasswordMatchError("");
+    }
+  }, [password, confirmPassword]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -61,6 +73,11 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
 
     if (state.users.some((u) => u.email === email)) {
       setError("Email already registered");
+      return;
+    }
+
+    if (passwordMatchError) {
+      setError(passwordMatchError);
       return;
     }
 
@@ -81,6 +98,7 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
       setLastName("");
       setEmail("");
       setPassword("");
+      setConfirmPassword("");
       setTimeout(() => {
         onSwitchToLogin();
       }, 1000);
@@ -143,14 +161,57 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
           <label className="block text-sm font-medium text-gray-700">
             Password
           </label>
-          <input
-            type="password"
-            required
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
-          />
+          <div className="relative">
+            <input
+              type={showPassword ? "text" : "password"}
+              required
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              tabIndex={-1}
+              onClick={() => setShowPassword((v) => !v)}
+            >
+              {showPassword ? (
+                <EyeOff className="h-4 w-4 text-gray-400" />
+              ) : (
+                <Eye className="h-4 w-4 text-gray-400" />
+              )}
+            </button>
+          </div>
+
+          <label className="block text-sm font-medium text-gray-700">
+            Confirm Password
+          </label>
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? "text" : "password"}
+              required
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 focus:border-emerald-500"
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
+              tabIndex={-1}
+              onClick={() => setShowConfirmPassword((v) => !v)}
+            >
+              {showConfirmPassword ? (
+                <EyeOff className="h-4 w-4 text-gray-400" />
+              ) : (
+                <Eye className="h-4 w-4 text-gray-400" />
+              )}
+            </button>
+          </div>
+          {passwordMatchError && (
+            <div className="text-red-600">{passwordMatchError}</div>
+          )}
 
           {/* Custom Role Dropdown */}
           <label className="block text-sm font-medium text-gray-700">
