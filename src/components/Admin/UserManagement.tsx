@@ -35,7 +35,7 @@ const UserManagement: React.FC = () => {
         // Fetch users from backend
         const usersFromBackend = await fetchUsers();
         // Map branch to group for frontend
-        const mappedUsers = usersFromBackend.map((user:any) => ({
+        const mappedUsers = usersFromBackend.map((user: any) => ({
           ...user,
           id: user.id || user._id, // Ensure every user has an id property
           group: user.branch,
@@ -67,6 +67,11 @@ const UserManagement: React.FC = () => {
 
   const handleDeleteUser = (user: User) => {
     console.log("this is user", user);
+    // Check if user has contributions
+    if ((user.totalContributions || 0) > 0) {
+      // Don't allow deletion if user has contributions
+      return;
+    }
     setDeletingUser(user);
   };
 
@@ -274,8 +279,17 @@ const UserManagement: React.FC = () => {
                         </button>
                         <button
                           onClick={() => handleDeleteUser(user)}
-                          className="text-red-600 hover:text-red-900 p-1"
-                          title="Delete user"
+                          disabled={(user.totalContributions || 0) > 0}
+                          className={`p-1 ${
+                            (user.totalContributions || 0) > 0
+                              ? "text-gray-400 cursor-not-allowed"
+                              : "text-red-600 hover:text-red-900"
+                          }`}
+                          title={
+                            (user.totalContributions || 0) > 0
+                              ? "Cannot delete user with contributions"
+                              : "Delete user"
+                          }
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -312,10 +326,26 @@ const UserManagement: React.FC = () => {
       {deletingUser && (
         <ConfirmDialog
           title="Delete User"
-          message={`Are you sure you want to delete ${deletingUser.firstName}? This action cannot be undone.`}
-          confirmText="Delete"
-          confirmVariant="danger"
-          onConfirm={confirmDelete}
+          message={
+            (deletingUser.totalContributions || 0) > 0
+              ? `Cannot delete ${
+                  deletingUser.firstName
+                } because they have contributions of $${(
+                  deletingUser.totalContributions || 0
+                ).toLocaleString()}. Users with contributions cannot be deleted.`
+              : `Are you sure you want to delete ${deletingUser.firstName}? This action cannot be undone.`
+          }
+          confirmText={
+            (deletingUser.totalContributions || 0) > 0 ? "OK" : "Delete"
+          }
+          confirmVariant={
+            (deletingUser.totalContributions || 0) > 0 ? "primary" : "danger"
+          }
+          onConfirm={
+            (deletingUser.totalContributions || 0) > 0
+              ? () => setDeletingUser(null) // Just close dialog if user has contributions
+              : confirmDelete
+          }
           onCancel={() => setDeletingUser(null)}
         />
       )}
