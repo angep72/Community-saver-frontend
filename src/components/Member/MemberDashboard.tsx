@@ -49,30 +49,7 @@ const MemberDashboard: React.FC = () => {
   );
   const userSavings = currentUser.totalContributions;
 
-  const groupShares = useMemo(() => {
-    const { users, loans } = state;
-    console.log("those are the loans....", loans);
-    const totalInterest = loans
-      .filter((loan) => loan.status === "repaid")
-      .reduce((sum, loan) => {
-        const repayment =
-          typeof loan.repaymentAmount === "number" ? loan.repaymentAmount : 0;
-        const amount = typeof loan.amount === "number" ? loan.amount : 0;
-        return sum + (repayment - amount);
-      }, 0);
-    const allMembers = users.filter((u) => u.role === "member");
-    const totalSavings = allMembers.reduce(
-      (sum, u) => sum + u.totalContributions,
-      0
-    );
-    const memberInterest =
-      totalSavings > 0
-        ? (currentUser.totalContributions / totalSavings) * totalInterest
-        : 0;
-    return memberInterest;
-  }, [state.users, state.loans, currentUser.totalContributions]);
-
-  // Use currentUser as fallback when memberShares is not available
+  
   const displayData = memberShares || currentUser;
 
   const stats = [
@@ -116,7 +93,6 @@ const MemberDashboard: React.FC = () => {
       bg: "bg-purple-100",
     },
   ];
-  console.log(currentUser);
 
   const userLoans = state.loans.filter((loan) => {
     // loan.member could be an object or an ID
@@ -131,9 +107,7 @@ const MemberDashboard: React.FC = () => {
     !latestLoan ||
     (latestLoan.status && ["repaid", "rejected"].includes(latestLoan.status));
 
-  console.log("Eligible for loan?", isEligibleForLoan(currentUser));
-  console.log("Latest loan status:", latestLoan?.status);
-  console.log("currentUser.activeLoan:", currentUser);
+  
 
   useEffect(() => {
     const getShares = async () => {
@@ -158,7 +132,6 @@ const MemberDashboard: React.FC = () => {
     };
     getShares();
   }, [currentUser._id]);
-  console.log("thos", memberShares);
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">

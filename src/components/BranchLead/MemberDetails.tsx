@@ -6,6 +6,7 @@ import {
   Calendar,
   Edit,
   Save,
+  CheckCircle,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { getGroupTheme } from "../../utils/calculations";
@@ -48,6 +49,31 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
     const d = new Date(dateStr);
     return d.toLocaleString("default", { month: "long" });
   };
+
+  // Check if member has already contributed this month
+  const hasContributedThisMonth = () => {
+    return false
+  //   const currentMonth = new Date().toLocaleString("default", {
+  //     month: "long",
+  //   });
+  //   const currentYear = new Date().getFullYear();
+
+  //   return memberContributions.some((contribution) => {
+  //     const contributionDate = new Date(contribution.contributionDate);
+  //     const contributionMonth = contributionDate.toLocaleString("default", {
+  //       month: "long",
+  //     });
+  //     const contributionYear = contributionDate.getFullYear();
+
+  //     return (
+  //       contributionMonth === currentMonth &&
+  //       contributionYear === currentYear &&
+  //       (contribution.type === "regular" || contribution.type === "penalty")
+  //     );
+  //   });
+  };
+
+
 
   // Add Money state
   const [showAddMoney, setShowAddMoney] = useState(false);
@@ -104,6 +130,12 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
 
   // Add Money logic
   const handleAddMoney = async () => {
+    // Check if member has already contributed this month
+    // if (hasContributedThisMonth()) {
+    //   setAddError("Member has already contributed this month");
+    //   return;
+    // }
+
     if (addAmount <= 0) {
       setAddError("Amount must be greater than 0");
       return;
@@ -189,8 +221,6 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
         </div>
 
         <div className="p-6 space-y-6">
-
-
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Member Information
@@ -312,7 +342,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
                       </button>
                       <button
                         onClick={handleAddMoney}
-                        className="inline-flex items-center px-3 py-1 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-1/2"
+                        className={`inline-flex items-center px-3 py-1 text-sm rounded-lg transition-colors w-1/2 bg-emerald-600 text-white hover:bg-emerald-700"`}
                       >
                         Confirm
                       </button>
@@ -417,6 +447,8 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
               </div>
             </div>
           </div>
+
+          
 
           {/* Recent Contributions */}
           <div className="bg-white border border-gray-200 rounded-lg p-4">

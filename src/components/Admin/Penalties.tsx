@@ -44,7 +44,6 @@ console.log(penalties)
           <tr>
             <th className="py-2 px-4 text-left">Member</th>
             <th className="py-2 px-4 text-left">Contribution Date</th>
-            <th className="py-2 px-4 text-left">Amount</th>
             <th className="py-2 px-4 text-left">Penalty</th>
             <th className="py-2 px-4 text-left">Action</th>
           </tr>
@@ -61,7 +60,6 @@ console.log(penalties)
                     ? new Date(c.assignedDate).toLocaleDateString()
                     : "-"}
                 </td>
-                <td className="py-2 px-4">${c.amount}</td>
                 <td
                   className={`py-2 px-4 font-bold ${
                     isPenalty ? "text-red-600" : "text-green-600"
