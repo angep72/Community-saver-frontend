@@ -6,7 +6,6 @@ import {
   Calendar,
   Edit,
   Save,
-  AlertTriangle,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { getGroupTheme } from "../../utils/calculations";
@@ -49,6 +48,10 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
     const d = new Date(dateStr);
     return d.toLocaleString("default", { month: "long" });
   };
+
+  
+
+
 
   // Add Money state
   const [showAddMoney, setShowAddMoney] = useState(false);
@@ -105,7 +108,12 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
 
   // Add Money logic
   const handleAddMoney = async () => {
-    console.log("am breanch lead")
+    // Check if member has already contributed this month
+    // if (hasContributedThisMonth()) {
+    //   setAddError("Member has already contributed this month");
+    //   return;
+    // }
+
     if (addAmount <= 0) {
       setAddError("Amount must be greater than 0");
       return;
@@ -129,7 +137,6 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
 
     try {
       const backendContribution = await addContribution(newContribution);
-      console.log(backendContribution.contribution);
 
       // Only dispatch if backendContribution is valid and has memberId or userId
       if (
@@ -192,41 +199,6 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Access Status */}
-          <div
-            className={`p-4 rounded-lg ${
-              canEdit
-                ? "bg-emerald-50 border border-emerald-200"
-                : "bg-yellow-50 border border-yellow-200"
-            }`}
-          >
-            <div className="flex items-center">
-              <AlertTriangle
-                className={`w-5 h-5 mr-3 ${
-                  canEdit ? "text-emerald-600" : "text-yellow-600"
-                }`}
-              />
-              <div>
-                <h3
-                  className={`font-medium ${
-                    canEdit ? "text-emerald-800" : "text-yellow-800"
-                  }`}
-                >
-                  {canEdit ? "Edit Access Granted" : "Read-Only Access"}
-                </h3>
-                <p
-                  className={`text-sm ${
-                    canEdit ? "text-emerald-700" : "text-yellow-700"
-                  }`}
-                >
-                  {canEdit
-                    ? "This member has recent payment activity. You can modify their information."
-                    : "This member has no recent activity. Updates are restricted."}
-                </p>
-              </div>
-            </div>
-          </div>
-
           <div className="bg-gray-50 rounded-lg p-4">
             <h3 className="text-lg font-medium text-gray-900 mb-4">
               Member Information
@@ -348,7 +320,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
                       </button>
                       <button
                         onClick={handleAddMoney}
-                        className="inline-flex items-center px-3 py-1 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-1/2"
+                        className={`inline-flex items-center px-3 py-1 text-sm rounded-lg transition-colors w-1/2 bg-emerald-600 text-white hover:bg-emerald-700"`}
                       >
                         Confirm
                       </button>
@@ -454,40 +426,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
             </div>
           </div>
 
-          {/* Active Loan */}
-          {member.activeLoan && (
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <h3 className="text-lg font-medium text-blue-900 mb-3">
-                Active Loan
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div>
-                  <span className="text-blue-700">Amount:</span>
-                  <span className="ml-2 font-medium">
-                    $
-                    {typeof member.activeLoan?.amount === "number"
-                      ? member.activeLoan.amount.toLocaleString()
-                      : "0"}{" "}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-blue-700">Repayment:</span>
-                  <span className="ml-2 font-medium">
-                    $
-                    {typeof member.activeLoan?.repaymentAmount === "number"
-                      ? member.activeLoan.repaymentAmount.toLocaleString()
-                      : "0"}
-                  </span>
-                </div>
-                <div>
-                  <span className="text-blue-700">Due Date:</span>
-                  <span className="ml-2 font-medium">
-                    {new Date(member.activeLoan.dueDate).toLocaleDateString()}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
+          
 
           {/* Recent Contributions */}
           <div className="bg-white border border-gray-200 rounded-lg p-4">
@@ -495,9 +434,12 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
               Recent Contributions
             </h3>
             <div className="space-y-2 max-h-40 overflow-y-auto">
-              {memberContributions.slice(0, 5).map((contribution) => (
+              {memberContributions.slice(0, 5).map((contribution, index) => (
                 <div
-                  key={contribution.id}
+                  key={
+                    contribution.id ||
+                    `contribution-${contribution.contributionDate}-${index}`
+                  }
                   className="flex items-center justify-between p-2 bg-gray-50 rounded"
                 >
                   <div className="flex items-center">

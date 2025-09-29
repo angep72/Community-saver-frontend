@@ -128,11 +128,7 @@ export const fetchPenalties = async () => {
   return res.data.data.penalties;
 };
 
-// POST a new penalty
-// export const createPenalty = async (penaltyData: any) => {
-//   const res = await api.post("/penalties", penaltyData);
-//   return res.data.data.penalty;
-// };
+
 
 // PUT (update) a penalty
 export const updatePenalty = async (penaltyId: string, updates: any) => {

@@ -16,11 +16,11 @@ import { Loan, User } from "../../types";
 const BranchLeadDashboard: React.FC = () => {
   const { state, dispatch } = useApp();
   const { currentUser, users, loans } = state;
-    const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
-     const [actionType, setActionType] = useState<"approve" | "reject" | null>(
-        null
-      );
-  
+  const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
+  const [actionType, setActionType] = useState<"approve" | "reject" | null>(
+    null
+  );
+
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
 
   if (!currentUser || currentUser.role !== "branch_lead") return null;
@@ -34,7 +34,6 @@ const BranchLeadDashboard: React.FC = () => {
   const branchLoans = loans.filter((loan) =>
     branchMembers.some((member) => member.id === loan.memberId)
   );
-  // console.log("this branch...",branchLoans)
 
   const pendingLoans = branchLoans.filter(
     (loan) => loan.status === "pending"
@@ -52,7 +51,6 @@ const BranchLeadDashboard: React.FC = () => {
       (typeof member.penalties === "number" ? member.penalties : 0),
     0
   );
-  // console.log("This is total saving branch", users);
   const stats = [
     {
       title: "Branch Members",
@@ -88,42 +86,41 @@ const BranchLeadDashboard: React.FC = () => {
   const getMemberUpdateAccess = (_memberId: string) => true;
 
   const handleLoanAction = (loan: Loan, action: "approve" | "reject") => {
-      setSelectedLoan(loan);
-      setActionType(action);
-        setTimeout(() => confirmAction(), 0); // ensure state is set before calling
+    setSelectedLoan(loan);
+    setActionType(action);
+    setTimeout(() => confirmAction(), 0); // ensure state is set before calling
+  };
 
-    };
+  const confirmAction = async () => {
+    if (!selectedLoan || !actionType || !currentUser) return;
 
-    const confirmAction = async () => {
-        if (!selectedLoan || !actionType || !currentUser) return;
-    
-        try {
-          const backendLoan = await approveOrReject(
-            selectedLoan.id || (selectedLoan._id as string),
-            actionType === "approve" ? "approved" : "rejected"
-            // actionType === "reject" ? "Rejected by admin" : undefined
-          );
-          console.log(selectedLoan._id);
-          dispatch({ type: "UPDATE_LOAN", payload: backendLoan });
-    
-          // If approved, update the member's active loan (optional, if needed)
-          if (actionType === "approve" && backendLoan.member) {
-            const updatedMember: User = {
-              ...backendLoan.member,
-              activeLoan: { ...backendLoan, status: "active" as const },
-            };
-            const backendUser = await updateUser(updatedMember);
-            if (backendUser) {
-              dispatch({ type: "UPDATE_USER", payload: backendUser });
-            }
-          }
-        } catch (error) {
-          console.error("Failed to update loan/user in backend", error);
+    try {
+      const backendLoan = await approveOrReject(
+        selectedLoan.id || (selectedLoan._id as string),
+        actionType === "approve" ? "approved" : "rejected"
+        // actionType === "reject" ? "Rejected by admin" : undefined
+      );
+      dispatch({ type: "UPDATE_LOAN", payload: backendLoan });
+
+      // If approved, update the member's active loan (optional, if needed)
+      if (actionType === "approve" && backendLoan.member) {
+        const updatedMember: User = {
+          ...backendLoan.member,
+          activeLoan: { ...backendLoan, status: "active" as const },
+        };
+        const backendUser = await updateUser(updatedMember);
+        if (backendUser) {
+          dispatch({ type: "UPDATE_USER", payload: backendUser });
         }
-    
-        setSelectedLoan(null);
-        setActionType(null);
-      };
+      }
+    } catch (error) {
+      console.error("Failed to update loan/user in backend", error);
+    }
+
+    setSelectedLoan(null);
+    setActionType(null);
+  };
+
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -171,13 +168,13 @@ const BranchLeadDashboard: React.FC = () => {
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {branchMembers.map((member) => {
               const memberTheme = getGroupTheme("green-200");
-              const memberLoan = member.activeLoan;
               // Only show edit button if branch lead's group matches member's group
               const canEdit = currentUser.branch === member.branch;
+              
 
               return (
                 <div
-                  key={member.id}
+                  key={member.id || member._id || `member-${member.email}`}
                   className="flex items-center justify-between p-4 bg-gray-50 rounded-lg"
                 >
                   <div className="flex items-center space-x-3">
@@ -209,19 +206,21 @@ const BranchLeadDashboard: React.FC = () => {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    {memberLoan && (
-                      <span className="px-2 py-1 text-xs bg-blue-100 text-emerald-700 rounded-full">
-                        Has Loan
-                      </span>
-                    )}
+                    
                     {canEdit && (
                       <>
                         <span className="px-2 py-1 text-xs rounded-full bg-emerald-100 text-emerald-800">
-                          Can Edit
+                          Add Member Contribution
                         </span>
                         <button
-                          onClick={() => setSelectedMember(member.id)}
-                          className="p-1 rounded text-emerald-600 hover:bg-blue-100"
+                          onClick={() => {
+                            const memberId =
+                              member.id || member._id || member.email;
+                            
+                            setSelectedMember(memberId);
+                          }}
+                          className="p-1 rounded text-emerald-600 hover:bg-blue-100 cursor-pointer"
+                          disabled={!member.id && !member._id && !member.email}
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -250,7 +249,14 @@ const BranchLeadDashboard: React.FC = () => {
                 const memberTheme = getGroupTheme(member.branch);
 
                 return (
-                  <div key={loan.id} className="p-4 bg-gray-50 rounded-lg">
+                  <div
+                    key={
+                      loan.id ||
+                      loan._id ||
+                      `loan-${loan.memberId}-${loan.amount}`
+                    }
+                    className="p-4 bg-gray-50 rounded-lg"
+                  >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center space-x-3">
                         <div
@@ -289,13 +295,13 @@ const BranchLeadDashboard: React.FC = () => {
 
                     <div className="flex space-x-2">
                       <button
-                          onClick={() => handleLoanAction(loan, "reject")}
+                        onClick={() => handleLoanAction(loan, "reject")}
                         className="flex-1 px-3 py-1 border border-red-300 text-red-700 rounded text-sm hover:bg-red-50 transition-colors"
                       >
                         Reject
                       </button>
                       <button
-                          onClick={() => handleLoanAction(loan, "approve")}
+                        onClick={() => handleLoanAction(loan, "approve")}
                         className="flex-1 px-3 py-1 bg-emerald-600 text-white rounded text-sm hover:bg-emerald-700 transition-colors"
                       >
                         Approve
