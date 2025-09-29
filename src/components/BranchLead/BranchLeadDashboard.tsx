@@ -121,7 +121,6 @@ const BranchLeadDashboard: React.FC = () => {
     setActionType(null);
   };
 
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -170,7 +169,6 @@ const BranchLeadDashboard: React.FC = () => {
               const memberTheme = getGroupTheme("green-200");
               // Only show edit button if branch lead's group matches member's group
               const canEdit = currentUser.branch === member.branch;
-              
 
               return (
                 <div
@@ -206,7 +204,6 @@ const BranchLeadDashboard: React.FC = () => {
                   </div>
 
                   <div className="flex items-center space-x-2">
-                    
                     {canEdit && (
                       <>
                         <span className="px-2 py-1 text-xs rounded-full bg-emerald-100 text-emerald-800">
@@ -214,13 +211,24 @@ const BranchLeadDashboard: React.FC = () => {
                         </span>
                         <button
                           onClick={() => {
-                            const memberId =
-                              member.id || member._id || member.email;
-                            
-                            setSelectedMember(memberId);
+                            const memberId = member.id || member._id;
+                            console.log(
+                              "Clicking edit for member:",
+                              memberId,
+                              member
+                            );
+
+                            if (memberId) {
+                              setSelectedMember(memberId);
+                            } else {
+                              console.error(
+                                "No valid member ID found:",
+                                member
+                              );
+                            }
                           }}
                           className="p-1 rounded text-emerald-600 hover:bg-blue-100 cursor-pointer"
-                          disabled={!member.id && !member._id && !member.email}
+                          disabled={!member.id && !member._id}
                         >
                           <Edit className="w-4 h-4" />
                         </button>

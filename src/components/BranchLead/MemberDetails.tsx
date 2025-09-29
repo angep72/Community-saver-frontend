@@ -24,7 +24,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
 }) => {
   const { state, dispatch } = useApp();
   const { users, contributions } = state;
-  const member = users.find((u) => u.id === memberId);
+  const member = users.find((u) => u.id === memberId || u._id === memberId);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -48,10 +48,6 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
     const d = new Date(dateStr);
     return d.toLocaleString("default", { month: "long" });
   };
-
-  
-
-
 
   // Add Money state
   const [showAddMoney, setShowAddMoney] = useState(false);
@@ -108,12 +104,6 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
 
   // Add Money logic
   const handleAddMoney = async () => {
-    // Check if member has already contributed this month
-    // if (hasContributedThisMonth()) {
-    //   setAddError("Member has already contributed this month");
-    //   return;
-    // }
-
     if (addAmount <= 0) {
       setAddError("Amount must be greater than 0");
       return;
@@ -425,8 +415,6 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
               </div>
             </div>
           </div>
-
-          
 
           {/* Recent Contributions */}
           <div className="bg-white border border-gray-200 rounded-lg p-4">

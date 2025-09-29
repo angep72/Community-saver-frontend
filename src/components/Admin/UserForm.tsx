@@ -185,6 +185,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
           dispatch({ type: "UPDATE_LOAN", payload: backendLoan });
         }
       } else {
+        console.log(userData)
         const backendUser = await addUser(userData);
         if (backendUser) {
           // Map branch to group for frontend
@@ -195,7 +196,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
           const backendLoan = await addLoan(activeLoan);
           dispatch({ type: "ADD_LOAN", payload: backendLoan });
         }
-      }
+       }
     } catch (error) {
       // Optionally handle error (e.g., show notification)
       console.error("Failed to update/add user/loan in backend", error);
