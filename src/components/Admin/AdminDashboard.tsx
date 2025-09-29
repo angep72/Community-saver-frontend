@@ -24,25 +24,6 @@ const AdminDashboard: React.FC = () => {
   const totalMembers = users.filter((user) => user.role === "member").length;
   console.log("those are the users ", users);
 
-  // Calculate total penalties collected
-  const totalPenalties = users.reduce(
-    (sum, user) =>
-      sum + (typeof user.penalties === "number" ? user.penalties : 0),
-    0
-  );
-  // const Balance = calculateAvailableBalance(users);
-  // const totalInterest = loans
-  //   .filter((loan) => loan.status === "repaid")
-  //   .reduce((sum, loan) => sum + (loan.repaymentAmount - loan.amount), 0);
-  // const totalProjectedInterest = loans
-  //   .filter((loan) => loan.status === "active" || loan.status === "approved")
-  //   .reduce((sum, loan) => sum + (loan.repaymentAmount - loan.amount), 0);
-
-  // const futureBalance =
-  // calculateFutureBalance(state.contributions) +
-  //   totalProjectedInterest +
-  //   totalInterest;
-
   const [netContributions, setNetContributions] = useState<any>(0);
 
   useEffect(() => {
@@ -214,15 +195,15 @@ console.log("this is ",loans)
               </div>
             </div>
 
-            {/* Group Overview */}
+            {/* Branch Overview */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Group Distribution
+                Branch Distribution
               </h3>
               <div className="space-y-4">
-                {["blue", "yellow", "red", "purple"].map((group) => {
+                {["blue", "yellow", "red", "purple"].map((branch) => {
                   const groupMembers = users.filter(
-                    (u) => u.branch === group && u.role === "member"
+                    (u) => u.branch === branch && u.role === "member"
                   );
                   const totalSavings = groupMembers.reduce(
                     (sum, u) => sum + u.totalContributions,
@@ -231,23 +212,23 @@ console.log("this is ",loans)
 
                   return (
                     <div
-                      key={group}
+                      key={branch}
                       className="flex items-center justify-between"
                     >
                       <div className="flex items-center">
                         <div
                           className={`w-4 h-4 rounded-full mr-3 ${
-                            group === "blue"
+                            branch === "blue"
                               ? "bg-blue-500"
-                              : group === "yellow"
+                              : branch === "yellow"
                               ? "bg-yellow-500"
-                              : group === "red"
+                              : branch === "red"
                               ? "bg-red-500"
                               : "bg-purple-500"
                           }`}
                         />
                         <span className="font-medium text-gray-900 capitalize">
-                          {group} Group
+                          {branch} Branch
                         </span>
                       </div>
                       <div className="text-right">
