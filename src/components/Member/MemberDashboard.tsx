@@ -72,17 +72,28 @@ const MemberDashboard: React.FC = () => {
     return memberInterest;
   }, [state.users, state.loans, currentUser.totalContributions]);
 
+  // Use currentUser as fallback when memberShares is not available
+  const displayData = memberShares || currentUser;
+
   const stats = [
     {
       title: "Total Savings",
-      value: `$${(memberShares?.totalContribution ?? 0).toLocaleString()}`,
+      value: `$${(
+        displayData?.totalContribution ??
+        displayData?.totalContributions ??
+        0
+      ).toLocaleString()}`,
       icon: DollarSign,
       color: "text-emerald-600",
       bg: "bg-emerald-100",
     },
     {
       title: "Interest Received",
-      value: `$${(memberShares?.interestEarned ?? 0).toLocaleString(undefined, {
+      value: `$${(
+        displayData?.interestEarned ??
+        displayData?.interestReceived ??
+        0
+      ).toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })}`,
@@ -122,7 +133,7 @@ const MemberDashboard: React.FC = () => {
 
   console.log("Eligible for loan?", isEligibleForLoan(currentUser));
   console.log("Latest loan status:", latestLoan?.status);
-  console.log("currentUser.activeLoan:", currentUser.activeLoan);
+  console.log("currentUser.activeLoan:", currentUser);
 
   useEffect(() => {
     const getShares = async () => {
@@ -141,25 +152,27 @@ const MemberDashboard: React.FC = () => {
         setMemberShares(currentShare);
       } catch (error) {
         console.error("Failed to fetch member shares", error);
+        // If API fails, fallback to currentUser data
+        setMemberShares(null);
       }
     };
     getShares();
   }, [currentUser._id]);
   console.log("thos", memberShares);
-
-  // const currentData = memberShares.filter((share:any)=> share._id === currentUser._id)
-  // console.log("yyyyy",currentData)
-
-  if (!memberShares) {
-    return <div>Loading...</div>;
-  }
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
           Member Dashboard
         </h1>
-        <p className="text-gray-600">Welcome back, {memberShares.name}</p>
+        <p className="text-gray-600">
+          Welcome back,{" "}
+          {displayData?.name ||
+            `${displayData?.firstName || ""} ${
+              displayData?.lastName || ""
+            }`.trim() ||
+            "Member"}
+        </p>
       </div>
 
       {/* Stats Grid */}
@@ -281,7 +294,14 @@ const MemberDashboard: React.FC = () => {
           <div>
             <h4 className="font-medium text-gray-700 mb-2">Loan Calculation</h4>
             <div className="space-y-1 text-sm text-gray-600">
-              <p>Savings: ${memberShares.totalContribution}</p>
+              <p>
+                Savings: $
+                {(
+                  displayData?.totalContribution ??
+                  displayData?.totalContributions ??
+                  0
+                ).toLocaleString()}
+              </p>
               <p>Multiplier: {rules ? rules.maxLoanMultiplier : "N/A"}x</p>
               <p>
                 Maximum: $
