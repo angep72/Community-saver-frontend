@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DollarSign,
   TrendingUp,
@@ -11,7 +11,6 @@ import {
 import { useApp } from "../../context/AppContext";
 import {
   calculateMaxLoanAmount,
-  isEligibleForLoan,
 } from "../../utils/calculations";
 import LoanRequestForm from "./LoanRequestForm";
 import ContributionHistory from "./ContributionHistory";

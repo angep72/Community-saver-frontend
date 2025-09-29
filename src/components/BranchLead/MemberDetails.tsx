@@ -6,7 +6,6 @@ import {
   Calendar,
   Edit,
   Save,
-  CheckCircle,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { getGroupTheme } from "../../utils/calculations";
@@ -50,28 +49,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
     return d.toLocaleString("default", { month: "long" });
   };
 
-  // Check if member has already contributed this month
-  const hasContributedThisMonth = () => {
-    return false
-  //   const currentMonth = new Date().toLocaleString("default", {
-  //     month: "long",
-  //   });
-  //   const currentYear = new Date().getFullYear();
-
-  //   return memberContributions.some((contribution) => {
-  //     const contributionDate = new Date(contribution.contributionDate);
-  //     const contributionMonth = contributionDate.toLocaleString("default", {
-  //       month: "long",
-  //     });
-  //     const contributionYear = contributionDate.getFullYear();
-
-  //     return (
-  //       contributionMonth === currentMonth &&
-  //       contributionYear === currentYear &&
-  //       (contribution.type === "regular" || contribution.type === "penalty")
-  //     );
-  //   });
-  };
+  
 
 
 
