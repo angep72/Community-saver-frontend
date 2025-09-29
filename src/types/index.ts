@@ -15,6 +15,7 @@ export interface User {
   totalPenalties?:number;//to be cleaned
   isActive?: boolean;
   interestReceived: number;
+  status?:string;
 }
 
 export interface Loan {

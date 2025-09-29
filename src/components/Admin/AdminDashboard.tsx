@@ -6,6 +6,7 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
+  UserCheck,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 
@@ -14,6 +15,7 @@ import LoanApproval from "./LoanApproval";
 import GroupShares from "./GroupShares";
 import Penalties from "./Penalties";
 import { fetchNetContributions } from "../../utils/api";
+import RegistrationApproval from "./RegistrationApproval";
 
 const AdminDashboard: React.FC = () => {
   const { state } = useApp();
@@ -21,7 +23,8 @@ const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState("overview");
 
   const pendingLoans = loans.filter((loan) => loan.status === "pending").length;
-  const totalMembers = users.filter((user) => user.role === "member").length;
+  const totalMembers = users.filter((user) => user.role === "member" && user.status === "approved").length;
+  const pendingRegistrations = users.filter((user) => user.status === "pending").length;
   console.log("those are the users ", users);
 
   const [netContributions, setNetContributions] = useState<any>(0);
@@ -39,7 +42,6 @@ const AdminDashboard: React.FC = () => {
     fetchNet();
   }, [loans, users]);
   console.log("this is the netcontributions", netContributions);
-  //  const availableBalance = netContributions
 
   const stats = [
     {
@@ -87,12 +89,15 @@ const AdminDashboard: React.FC = () => {
 
   const tabs = [
     { id: "overview", label: "Overview", icon: TrendingUp },
+    { id: "registrations", label: "Registration Approval", icon: UserCheck },
     { id: "users", label: "User Management", icon: Users },
     { id: "loans", label: "Loan Approval", icon: CheckCircle },
     { id: "groupshares", label: "Group Shares & Interest", icon: DollarSign },
     { id: "penalties", label: "Penalties", icon: AlertCircle },
   ];
-console.log("this is ",loans)
+  
+  console.log("this is ", loans);
+  
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -141,6 +146,11 @@ console.log("this is ",loans)
             >
               <tab.icon className="w-5 h-5 mr-2" />
               {tab.label}
+              {tab.id === "registrations" && pendingRegistrations > 0 && (
+                <span className="ml-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {pendingRegistrations}
+                </span>
+              )}
             </button>
           ))}
         </nav>
@@ -248,6 +258,7 @@ console.log("this is ",loans)
         </div>
       )}
 
+      {activeTab === "registrations" && <RegistrationApproval />}
       {activeTab === "users" && <UserManagement />}
       {activeTab === "loans" && <LoanApproval />}
       {activeTab === "groupshares" && <GroupShares />}

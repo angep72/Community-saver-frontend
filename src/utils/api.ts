@@ -31,6 +31,12 @@ export const fetchUsers = async () => {
   return res.data.data.users;
 };
 
+// Fetch a single user by email (utility for login checks)
+export const fetchUserByEmail = async (email: string) => {
+  const users = await fetchUsers();
+  return users.find((u: any) => u.email === email);
+};
+
 export const fetchMemberShares = async () => {
   const res = await api.get("users/shares");
   return res.data.data;
@@ -41,7 +47,7 @@ export const addUser = async (user: User) => {
   return res.data.data.users;
 };
 
-export const updateUser = async (user: User) => {
+export const updateUser = async (user: Partial<User> & { id: string }) => {
   const res = await api.put(`/users/${user.id}`, user);
   console.log("This is the data as it is ", res.data.data.user);
   return res.data.data.user;
@@ -50,6 +56,18 @@ export const updateUser = async (user: User) => {
 export const deleteUser = async (userId: string) => {
   const res = await api.delete(`/users/${userId}`);
   return res.data.data;
+};
+
+// Add these to your USERS section in utils/api.ts
+
+export const approveUser = async (userId: string) => {
+  const res = await api.post(`/users/${userId}/approve`, { status: "approved" });
+  return res.data.data.user;
+};
+
+export const rejectUser = async (userId: string) => {
+  const res = await api.post(`/users/${userId}/approve`, { status: "rejected" });
+  return res.data.data.user;
 };
 
 // LOANS
