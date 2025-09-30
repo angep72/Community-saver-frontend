@@ -24,7 +24,7 @@ const LoginForm: React.FC = () => {
 
     try {
       const data = await loginUser({ email, password });
-      console.log("Login response:", data);
+      
       if (data && data.data && data.data.token) {
         localStorage.setItem("token", data.data.token);
       } else {

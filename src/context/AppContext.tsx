@@ -82,7 +82,6 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
       };
 
     case "LOGIN": {
-      console.log("Reducer LOGIN action:", action.payload);
       localStorage.setItem("currentUser", JSON.stringify(action.payload));
       return { ...state, currentUser: action.payload };
     }
@@ -192,8 +191,7 @@ const appReducer = (state: AppState, action: AppAction): AppState => {
     }
 
     case "ADD_CONTRIBUTION":
-      // Log the payload for debugging
-      console.log("ADD_CONTRIBUTION payload:", action.payload);
+    
       if (
         !action.payload ||
         (typeof action.payload.memberId === "undefined" &&

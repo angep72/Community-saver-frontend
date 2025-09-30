@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, User as UserIcon } from "lucide-react";
+import { X, User as UserIcon, Eye, EyeOff } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { User } from "../../types";
 import { addUser, updateUser, addLoan, updateLoan } from "../../utils/api";
@@ -10,13 +10,6 @@ interface UserFormProps {
 }
 
 const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
-  useEffect(() => {
-    if (user && user.activeLoan) {
-      console.log("Member Loan Status:", user.activeLoan.status);
-    } else if (user) {
-      console.log("Member has no active loan");
-    }
-  }, [user]);
   const { state, dispatch } = useApp();
   const [formData, setFormData] = useState({
     firstName: "",
@@ -45,6 +38,20 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordMatchError, setPasswordMatchError] = useState("");
+  const [passwordStrengthError, setPasswordStrengthError] = useState("");
+
+  // Password strength validation function
+  const isStrongPassword = (pwd: string) => {
+    return (
+      /[A-Z]/.test(pwd) &&
+      /[^A-Za-z0-9]/.test(pwd) &&
+      pwd.length >= 9
+    );
+  };
 
   useEffect(() => {
     if (user) {
@@ -82,6 +89,24 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
     }
   }, [user]);
 
+  useEffect(() => {
+    if (!user && confirmPassword && formData.password !== confirmPassword) {
+      setPasswordMatchError("Passwords do not match");
+    } else {
+      setPasswordMatchError("");
+    }
+  }, [formData.password, confirmPassword, user]);
+
+  useEffect(() => {
+    if (!user && formData.password && !isStrongPassword(formData.password)) {
+      setPasswordStrengthError(
+        "Password must be at least 9 characters, include one uppercase letter and one special character."
+      );
+    } else {
+      setPasswordStrengthError("");
+    }
+  }, [formData.password, user]);
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -102,8 +127,12 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
     if (!user) {
       if (!formData.password.trim()) {
         newErrors.password = "Password is required";
-      } else if (formData.password.length < 6) {
-        newErrors.password = "Password must be at least 6 characters";
+      } else if (!isStrongPassword(formData.password)) {
+        newErrors.password =
+          "Password must be at least 9 characters, include one uppercase letter and one special character.";
+      }
+      if (formData.password !== confirmPassword) {
+        newErrors.password = "Passwords do not match";
       }
     }
 
@@ -185,7 +214,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
           dispatch({ type: "UPDATE_LOAN", payload: backendLoan });
         }
       } else {
-        console.log(userData)
+       
         const backendUser = await addUser(userData);
         if (backendUser) {
           // Map branch to group for frontend
@@ -198,7 +227,7 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
         }
        }
     } catch (error) {
-      // Optionally handle error (e.g., show notification)
+      
       console.error("Failed to update/add user/loan in backend", error);
     }
 
@@ -330,27 +359,75 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
             </div>
 
             {!user && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password *
-                </label>
-                <input
-                  type="password"
-                  value={formData.password}
-                  onChange={(e) =>
-                    handleInputChange("password", e.target.value)
-                  }
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
-                    errors.password
-                      ? "border-red-300 focus:border-red-500"
-                      : "border-gray-300 focus:border-emerald-500"
-                  }`}
-                  placeholder="Enter password"
-                />
-                {errors.password && (
-                  <p className="text-xs text-red-600 mt-1">{errors.password}</p>
-                )}
-              </div>
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Password *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? "text" : "password"}
+                      value={formData.password}
+                      onChange={(e) =>
+                        handleInputChange("password", e.target.value)
+                      }
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                        errors.password
+                          ? "border-red-300 focus:border-red-500"
+                          : "border-gray-300 focus:border-emerald-500"
+                      }`}
+                      placeholder="Enter password"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      tabIndex={-1}
+                      onClick={() => setShowPassword((v) => !v)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                  {passwordStrengthError && (
+                    <p className="text-xs text-green-800 mt-1">{passwordStrengthError}</p>
+                  )}
+                  {errors.password && (
+                    <p className="text-xs text-green-800 mt-1">{errors.password}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Confirm Password *
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 border-gray-300 focus:border-emerald-500"
+                      placeholder="Confirm password"
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      tabIndex={-1}
+                      onClick={() => setShowConfirmPassword((v) => !v)}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
+                  {passwordMatchError && (
+                    <p className="text-xs text-green-800 mt-1">{passwordMatchError}</p>
+                  )}
+                </div>
+              </>
             )}
 
             <div className="grid grid-cols-2 gap-4">
@@ -562,5 +639,4 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
     </div>
   );
 };
-
 export default UserForm;

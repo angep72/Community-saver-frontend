@@ -24,14 +24,12 @@ export const calculateAvailableBalance = (users: User[]): number => {
 };
 
 export const calculateFutureBalance = (
-  // users: User[],
   contributions: Contribution[]
 ): number => {
   const totalContributions = contributions.reduce(
     (sum, contribution) => sum + contribution.amount,
     0
   );
-  console.log(totalContributions)
   return totalContributions;
 };
 

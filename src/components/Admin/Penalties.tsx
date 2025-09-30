@@ -34,7 +34,7 @@ const Penalties: React.FC = () => {
     console.error("Failed to pay penalty", error);
   }
 };
-console.log(penalties)
+
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">

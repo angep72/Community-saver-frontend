@@ -212,12 +212,6 @@ const BranchLeadDashboard: React.FC = () => {
                         <button
                           onClick={() => {
                             const memberId = member.id || member._id;
-                            console.log(
-                              "Clicking edit for member:",
-                              memberId,
-                              member
-                            );
-
                             if (memberId) {
                               setSelectedMember(memberId);
                             } else {

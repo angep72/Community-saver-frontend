@@ -48,7 +48,6 @@ const LoanApproval: React.FC = () => {
         actionType === "approve" ? "approved" : "rejected"
         // actionType === "reject" ? "Rejected by admin" : undefined
       );
-      console.log(selectedLoan._id);
       dispatch({ type: "UPDATE_LOAN", payload: backendLoan });
 
       // If approved, update the member's active loan (optional, if needed)
@@ -115,7 +114,6 @@ const LoanApproval: React.FC = () => {
       console.error("No loan ID found for repayment.");
       return;
     }
-    console.log("Selected loan ID:", selectedLoan._id || selectedLoan.id);
     const paidSoFar = selectedLoan.paidAmount || 0;
     const repaymentTotal =
       selectedLoan.repaymentAmount ?? selectedLoan.totalAmount ?? 0;
@@ -155,7 +153,6 @@ const LoanApproval: React.FC = () => {
       dispatch({ type: "LOAD_LOANS", payload: normalized });
     });
   }, [dispatch]);
-  console.log("this is lonoooo........", loans);
 
   return (
     <div className="space-y-6">
@@ -190,12 +187,6 @@ const LoanApproval: React.FC = () => {
               ? loan.member
               : users.find((u) => u.id === loan._id || u._id === loan.member);
 
-              console.log("thosooo",member)
-          // typeof loan.member === "object"
-          //   ? loan.member
-          //   : users.find(
-          //       (u) => u.id === loan.member || u._id === loan.member
-          //     );
           if (!member) return null;
 
           const theme = getGroupTheme(member.branch);

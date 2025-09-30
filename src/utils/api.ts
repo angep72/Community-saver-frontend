@@ -1,16 +1,14 @@
-// BRANCHES
+
 export const fetchBranches = async () => {
   const res = await api.get("/branches");
   return res.data.data;
 };
-// src/utils/api.ts
 
 import { User, Loan, Contribution } from "../types";
 import axios from "axios";
 
 const API_BASE = "https://community-saver-quyb.onrender.com/api";
 
-// Set up axios instance with JWT interceptor
 const api = axios.create({
   baseURL: API_BASE,
 });
@@ -24,14 +22,11 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// USERS
 export const fetchUsers = async () => {
-  console.log("Token before /users request:", localStorage.getItem("token"));
   const res = await api.get("/users");
   return res.data.data.users;
 };
 
-// Fetch a single user by email (utility for login checks)
 export const fetchUserByEmail = async (email: string) => {
   const users = await fetchUsers();
   return users.find((u: any) => u.email === email);
@@ -49,7 +44,6 @@ export const addUser = async (user: User) => {
 
 export const updateUser = async (user: Partial<User> & { id: string }) => {
   const res = await api.put(`/users/${user.id}`, user);
-  console.log("This is the data as it is ", res.data.data.user);
   return res.data.data.user;
 };
 
@@ -58,7 +52,7 @@ export const deleteUser = async (userId: string) => {
   return res.data.data;
 };
 
-// Add these to your USERS section in utils/api.ts
+
 
 export const approveUser = async (userId: string) => {
   const res = await api.post(`/users/${userId}/approve`, { status: "approved" });
@@ -70,7 +64,7 @@ export const rejectUser = async (userId: string) => {
   return res.data.data.user;
 };
 
-// LOANS
+
 export const fetchLoans = async () => {
   const res = await api.get("/loans");
   return res.data.data.loans;
