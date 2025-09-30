@@ -102,10 +102,12 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
       setTimeout(() => {
         onSwitchToLogin();
       }, 1000);
-    } catch (err: any) {
-      setError(
-        err?.response?.data?.message || "Registration failed. Please try again."
-      );
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Registration failed. Please try again.");
+      }
     }
   };
 

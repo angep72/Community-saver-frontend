@@ -1,8 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { fetchMemberShares } from "../../utils/api"; // adjust path if needed
 
+type MemberShare = {
+  id: string;
+  name: string;
+  branch: string;
+  totalContribution: number;
+  sharePercentage: number;
+  interestEarned: number;
+  interestToBeEarned: number;
+};
+
 const GroupShares: React.FC = () => {
-  const [globalStats, setGlobalStats] = useState<any>(null);
+  const [globalStats, setGlobalStats] = useState<MemberShare[] | null>(null);
 
   useEffect(() => {
     const getShares = async () => {
@@ -73,7 +83,7 @@ const GroupShares: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {globalStats.map((member: any, idx: number) => (
+                {globalStats.map((member: MemberShare, idx: number) => (
                   <tr
                     key={member.id}
                     className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}

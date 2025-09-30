@@ -9,6 +9,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
+import { NetContributions } from "../../types";
 
 import UserManagement from "./UserManagement";
 import LoanApproval from "./LoanApproval";
@@ -27,7 +28,7 @@ const AdminDashboard: React.FC = () => {
   const pendingRegistrations = users.filter((user) => user.status === "pending").length;
   console.log("those are the users ", users);
 
-  const [netContributions, setNetContributions] = useState<any>(0);
+  const [netContributions, setNetContributions] = useState<NetContributions | null>(null);
 
   useEffect(() => {
     const fetchNet = async () => {

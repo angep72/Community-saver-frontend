@@ -35,7 +35,7 @@ const UserManagement: React.FC = () => {
         // Fetch users from backend
         const usersFromBackend = await fetchUsers();
         // Map branch to group for frontend
-        const mappedUsers = usersFromBackend.map((user: any) => ({
+        const mappedUsers = usersFromBackend.map((user: User) => ({
           ...user,
           id: user.id || user._id, // Ensure every user has an id property
           group: user.branch,
