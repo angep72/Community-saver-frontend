@@ -36,8 +36,12 @@ const LoginForm: React.FC = () => {
       } else {
         setError(data?.message || "Invalid email or password");
       }
-    } catch (err: any) {
-      setError(err?.response?.data?.message || "Failed to connect to backend");
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to connect to backend");
+      }
     }
 
     setIsLoading(false);

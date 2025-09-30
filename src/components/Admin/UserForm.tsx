@@ -145,8 +145,8 @@ const UserForm: React.FC<UserFormProps> = ({ user, onClose }) => {
     }
 
     // Calculate penalties and deduct from savings
-    let penalties = formData.penalties || 0;
-    let totalSavings = formData.totalSavings;
+    const penalties = formData.penalties || 0;
+    const totalSavings = formData.totalSavings;
 
     // Get latest interestReceived from context/state
     let latestInterestReceived = 0;

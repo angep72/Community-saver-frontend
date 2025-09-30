@@ -8,7 +8,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
-import { Loan, User } from "../../types";
+import { Loan, User, NormalizedLoan } from "../../types";
 import { getGroupTheme } from "../../utils/calculations";
 import ConfirmDialog from "../Common/ConfirmDialog";
 import {
@@ -148,7 +148,7 @@ const LoanApproval: React.FC = () => {
     });
     fetchLoans().then((loans) => {
       // Normalize id for each loan
-      const normalized = loans.map((l: any) => ({
+      const normalized = loans.map((l: NormalizedLoan) => ({
         ...l,
         id: l.id || l._id,
       }));

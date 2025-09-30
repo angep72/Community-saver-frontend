@@ -18,8 +18,12 @@ const RegistrationApproval: React.FC = () => {
       setPendingUsers(allUsers.filter(u => u.status === "pending" && u._id));
       setApprovedUsers(allUsers.filter(u => u.status === "approved" && u._id));
       setRejectedUsers(allUsers.filter(u => u.status === "rejected" && u._id));
-    } catch (err: any) {
-      setError("Failed to fetch users.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to reject user.");
+      }
     } finally {
       setLoading(false);
     }
@@ -33,8 +37,12 @@ const RegistrationApproval: React.FC = () => {
     try {
       await updateUser({ id: userId, status: "approved" });
       loadUsers();
-    } catch (err) {
-      setError("Failed to approve user.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to reject user.");
+      }
     }
   };
 
@@ -42,8 +50,12 @@ const RegistrationApproval: React.FC = () => {
     try {
       await updateUser({ id: userId, status: "rejected" });
       loadUsers();
-    } catch (err) {
-      setError("Failed to reject user.");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Failed to reject user.");
+      }
     }
   };
 

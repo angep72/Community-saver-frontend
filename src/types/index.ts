@@ -19,7 +19,7 @@ export interface User {
 }
 
 export interface Loan {
-  _id?:string;
+  _id?: string;
   id?: string;
   memberId?: string;
   amount: number;
@@ -28,17 +28,20 @@ export interface Loan {
   status: "pending" | "approved" | "rejected" | "active" | "repaid";
   approvedBy?: string;
   repaymentAmount: number;
-  totalAmount?:number;//to be corrected after
+  totalAmount?: number;
   paidAmount?: number;
-  interestRate?:number;
+  interestRate?: number;
   dueDate: Date;
   createdAt?: Date;
-  riskAssessment?:number;
-
-member?: User;
-  appliedDate?:Date
+  riskAssessment?: number;
+  member?: User;
+  appliedDate?: Date;
   duration: number;
+  // Add this line for compatibility with backend responses
+  [key: string]: any; // <-- allows extra properties like _id, id, etc.
 }
+
+export type NormalizedLoan = Loan & { _id?: string; id?: string };
 
 export interface Contribution {
   id: string;
@@ -66,3 +69,13 @@ export interface AppState {
   bankBalance: number;
   paidPenalties: string[];
 }
+
+export interface NetContributions {
+  netAvailable: number;
+  bestFutureBalance: number;
+  totalPaidPenalties: number;
+  // add other properties if your API returns more
+}
+
+export type AppError = string | null;
+export type InputValue = string | number;
