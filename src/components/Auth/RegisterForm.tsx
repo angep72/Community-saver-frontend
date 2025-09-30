@@ -22,6 +22,7 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [passwordMatchError, setPasswordMatchError] = useState("");
+  const [passwordStrengthError, setPasswordStrengthError] = useState("");
 
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
   const [groupDropdownOpen, setGroupDropdownOpen] = useState(false);
@@ -66,6 +67,27 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
     }
   }, [password, confirmPassword]);
 
+  // Password strength validation function
+  const isStrongPassword = (pwd: string) => {
+    // At least one uppercase, one special char, min 9 chars
+    return (
+      /[A-Z]/.test(pwd) &&
+      /[^A-Za-z0-9]/.test(pwd) &&
+      pwd.length >= 9
+    );
+  };
+
+  // Show password strength error as user types
+  useEffect(() => {
+    if (password && !isStrongPassword(password)) {
+      setPasswordStrengthError(
+        "Password must be at least 9 characters, include one uppercase letter and one special character."
+      );
+    } else {
+      setPasswordStrengthError("");
+    }
+  }, [password]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -78,6 +100,13 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
 
     if (passwordMatchError) {
       setError(passwordMatchError);
+      return;
+    }
+
+    if (!isStrongPassword(password)) {
+      setError(
+        "Password must be at least 9 characters, include one uppercase letter and one special character."
+      );
       return;
     }
 
@@ -185,6 +214,9 @@ const RegisterForm: React.FC<{ onSwitchToLogin: () => void }> = ({
               )}
             </button>
           </div>
+          {passwordStrengthError && (
+            <div className="text-xs text-green-800 mt-1">{passwordStrengthError}</div>
+          )}
 
           <label className="block text-sm font-medium text-gray-700">
             Confirm Password

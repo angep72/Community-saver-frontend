@@ -77,8 +77,6 @@ const LoanRequestForm: React.FC<LoanRequestFormProps> = ({
       ),
       duration: repaymentPeriod,
     };
-    console.log("This is the data we are sending ", newLoan);
-
     try {
       const backendLoan = await addLoan(newLoan); // <-- This sends data to backend
       dispatch({ type: "ADD_LOAN", payload: backendLoan });
@@ -89,8 +87,6 @@ const LoanRequestForm: React.FC<LoanRequestFormProps> = ({
     setIsSubmitting(false);
     onClose();
   };
-
-  //  console.log(availableBalance)
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full">

@@ -34,14 +34,12 @@ const AdminDashboard: React.FC = () => {
       try {
         const net = await fetchNetContributions();
         setNetContributions(net);
-        console.log("Net contributions:", net);
       } catch (error) {
         console.error("Failed to fetch net contributions", error);
       }
     };
     fetchNet();
   }, [loans, users]);
-
   const stats = [
     {
       title: "Total Members",
@@ -93,9 +91,7 @@ const AdminDashboard: React.FC = () => {
     { id: "loans", label: "Loan Approval", icon: CheckCircle },
     { id: "groupshares", label: "Group Shares & Interest", icon: DollarSign },
     { id: "penalties", label: "Penalties", icon: AlertCircle },
-  ];
-  
-  
+  ];  
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">

@@ -66,7 +66,7 @@ const UserManagement: React.FC = () => {
   };
 
   const handleDeleteUser = (user: User) => {
-    console.log("this is user", user);
+   
     // Check if user has contributions
     if ((user.totalContributions || 0) > 0) {
       // Don't allow deletion if user has contributions
@@ -123,9 +123,6 @@ const UserManagement: React.FC = () => {
         return role;
     }
   };
-
-  console.log("those are users", users);
-
   return (
     <div className="space-y-6">
       {/* Header */}
