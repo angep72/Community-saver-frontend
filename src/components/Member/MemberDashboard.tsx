@@ -41,6 +41,7 @@ const MemberDashboard: React.FC = () => {
         rules.maxLoanAmount
       )
     : 0;
+    
 
   const availableBalance = state.users.reduce(
     (sum, user) => sum + user.totalContributions,
