@@ -109,7 +109,6 @@ const MemberDashboard: React.FC = () => {
   
 
   useEffect(() => {
-    // Only fetch once on mount, not on every currentUser._id change
     const getShares = async () => {
       setLoading(true);
       try {
