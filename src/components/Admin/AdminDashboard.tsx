@@ -51,7 +51,7 @@ const AdminDashboard: React.FC = () => {
     {
       title: "Available Balance",
       value: netContributions
-        ? `$${netContributions.netAvailable.toLocaleString()}`
+        ? `€${netContributions.netAvailable.toLocaleString()}`
         : "-",
       icon: DollarSign,
       color: "text-emerald-600",
@@ -60,7 +60,7 @@ const AdminDashboard: React.FC = () => {
     {
       title: "Future Balance",
       value: netContributions
-        ? `$${netContributions.bestFutureBalance.toLocaleString()}`
+        ? `€${netContributions.bestFutureBalance.toLocaleString()}`
         : "-",
       icon: TrendingUp,
       color: "text-purple-600",
@@ -76,7 +76,7 @@ const AdminDashboard: React.FC = () => {
     {
       title: "Total Penalties Collected",
       value: netContributions
-        ? `$${netContributions.totalPaidPenalties.toLocaleString()}`
+        ? `€${netContributions.totalPaidPenalties.toLocaleString()}`
         : "-",
       icon: AlertCircle,
       color: "text-red-600",
@@ -172,7 +172,7 @@ const AdminDashboard: React.FC = () => {
                           {member?.firstName}
                         </p>
                         <p className="text-sm text-gray-500">
-                          ${loan.amount.toLocaleString()}
+                          €{loan.amount.toLocaleString()}
                         </p>
                       </div>
                       <div className="flex items-center">
@@ -240,7 +240,7 @@ const AdminDashboard: React.FC = () => {
                           {groupMembers.length} members
                         </p>
                         <p className="text-sm text-gray-500">
-                          ${totalSavings.toLocaleString()}
+                          €{totalSavings.toLocaleString()}
                         </p>
                       </div>
                     </div>
