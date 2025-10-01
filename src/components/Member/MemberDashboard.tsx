@@ -55,7 +55,7 @@ const MemberDashboard: React.FC = () => {
   const stats = [
     {
       title: "Total Savings",
-      value: `$${(
+      value: `€${(
         displayData?.totalContribution ??
         displayData?.totalContributions ??
         0
@@ -66,7 +66,7 @@ const MemberDashboard: React.FC = () => {
     },
     {
       title: "Interest Received",
-      value: `$${(
+      value: `€${(
         displayData?.interestEarned ??
         displayData?.interestReceived ??
         0
@@ -80,14 +80,14 @@ const MemberDashboard: React.FC = () => {
     },
     {
       title: "Penalties",
-      value: `$${(currentUser.totalPenalties ?? 0).toLocaleString()}`,
+      value: `€${(currentUser.totalPenalties ?? 0).toLocaleString()}`,
       icon: AlertTriangle,
       color: "text-red-600",
       bg: "bg-red-100",
     },
     {
       title: "Max Loanable",
-      value: `$${(maxLoanAmount ?? 0).toLocaleString()}`,
+      value: `€${(maxLoanAmount ?? 0).toLocaleString()}`,
       icon: Calculator,
       color: "text-purple-600",
       bg: "bg-purple-100",
@@ -184,9 +184,9 @@ const MemberDashboard: React.FC = () => {
                 Status:{" "}
                 <span className="font-semibold">{latestLoan.status}</span>
                 <br />
-                Amount: ${latestLoan.amount.toLocaleString()}
+                Amount: €{latestLoan.amount.toLocaleString()}
                 <br />
-                {/* Repayment: ${latestLoan.totalAmount.toLocaleString()} */}
+                {/* Repayment: €{latestLoan.totalAmount.toLocaleString()} */}
                 <br />
                 Due Date: {new Date(latestLoan.dueDate).toLocaleDateString()}
               </p>
@@ -249,7 +249,7 @@ const MemberDashboard: React.FC = () => {
             <h4 className="font-medium text-gray-700 mb-2">Loan Calculation</h4>
             <div className="space-y-1 text-sm text-gray-600">
               <p>
-                Savings: $
+                Savings: €
                 {(
                   displayData?.totalContribution ??
                   displayData?.totalContributions ??
@@ -258,13 +258,13 @@ const MemberDashboard: React.FC = () => {
               </p>
               <p>Multiplier: {rules ? rules.maxLoanMultiplier : "N/A"}x</p>
               <p>
-                Maximum: $
+                Maximum: €
                 {rules && rules.maxLoanAmount !== undefined
                   ? rules.maxLoanAmount.toLocaleString()
                   : "N/A"}
               </p>
               <p className="font-medium text-gray-900">
-                Your Max: $
+                Your Max: €
                 {maxLoanAmount !== undefined && maxLoanAmount !== null
                   ? maxLoanAmount.toLocaleString()
                   : "N/A"}
