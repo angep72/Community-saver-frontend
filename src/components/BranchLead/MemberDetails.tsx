@@ -22,6 +22,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
   canEdit,
   onClose,
 }) => {
+  // Move all hooks to top-level before any conditional return
   const { state, dispatch } = useApp();
   const { users, contributions } = state;
   const member = users.find((u) => u.id === memberId || u._id === memberId);
@@ -32,6 +33,12 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
     penalties: member?.penalties || 0,
     interestReceived: member?.interestReceived || 0,
   });
+
+  // Add Money state (move above conditional return)
+  const [showAddMoney, setShowAddMoney] = useState(false);
+  const [addAmount, setAddAmount] = useState(200);
+  const [addDate, setAddDate] = useState(new Date().toISOString().slice(0, 10));
+  const [addError, setAddError] = useState("");
 
   if (!member) return null;
 
@@ -50,12 +57,6 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
   };
 
   // Add Money state
-  const [showAddMoney, setShowAddMoney] = useState(false);
-  const [addAmount, setAddAmount] = useState(200);
-  const [addDate, setAddDate] = useState(new Date().toISOString().slice(0, 10));
-  const [addError, setAddError] = useState("");
-  // const memberLoans = loans.filter((l) => l.memberId === memberId);
-
   const handleSave = async () => {
     const adjustmentAmount =
       editData.totalSavings - (member.totalContributions || 0);
