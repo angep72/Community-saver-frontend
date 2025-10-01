@@ -76,6 +76,16 @@ export interface NetContributions {
   totalPaidPenalties: number;
   // add other properties if your API returns more
 }
-
+export interface AppState {
+    currentUser: User | null;
+  users: User[];
+  loans: Loan[];
+  contributions: Contribution[];
+  groupRules: Record<string, GroupRules>;
+  bankBalance: number;
+  paidPenalties: string[];
+  memberShares: any[];  
+  loading: boolean;     
+}
 export type AppError = string | null;
 export type InputValue = string | number;
