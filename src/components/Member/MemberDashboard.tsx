@@ -9,9 +9,7 @@ import {
   Calculator,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
-import {
-  calculateMaxLoanAmount,
-} from "../../utils/calculations";
+import { calculateMaxLoanAmount } from "../../utils/calculations";
 import LoanRequestForm from "./LoanRequestForm";
 import ContributionHistory from "./ContributionHistory";
 import { fetchMemberShares } from "../../utils/api";
@@ -47,7 +45,6 @@ const MemberDashboard: React.FC = () => {
     0
   );
   const userSavings = currentUser.totalContributions;
-
   
   const displayData = memberShares || currentUser;
 
@@ -77,13 +74,18 @@ const MemberDashboard: React.FC = () => {
       color: "text-blue-600",
       bg: "bg-blue-100",
     },
-    {
-      title: "Penalties",
-      value: `€${(currentUser.totalPenalties ?? 0).toLocaleString()}`,
-      icon: AlertTriangle,
-      color: "text-red-600",
-      bg: "bg-red-100",
-    },
+    // Only show penalties if not paid and pending > 0
+    ...(typeof currentUser.penalties === "object" &&
+      !currentUser.penalties.isPaid &&
+      currentUser.penalties.pending > 0
+      ? [{
+          title: "Penalties",
+          value: `€${(currentUser.penalties.pending ?? 0).toLocaleString()}`,
+          icon: AlertTriangle,
+          color: "text-red-600",
+          bg: "bg-red-100",
+        }]
+      : []),
     {
       title: "Max Loanable",
       value: `€${(maxLoanAmount ?? 0).toLocaleString()}`,

@@ -11,7 +11,7 @@ export interface User {
   contributionDate?: string;
   activeLoan?: Loan;
   contributions: Contribution[];
-  penalties: number;
+  penalties: number | MemberPenalties;
   totalPenalties?:number;//to be cleaned
   isActive?: boolean;
   interestReceived: number;
@@ -89,3 +89,11 @@ export interface AppState {
 }
 export type AppError = string | null;
 export type InputValue = string | number;
+
+// Add type for member penalties
+export interface MemberPenalties {
+  isPaid: boolean;
+  paid: number;
+  pending: number;
+  total: number;
+}
