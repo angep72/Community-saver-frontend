@@ -353,7 +353,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
                 )}
               </div>
 
-              <div>
+              {/* <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Penalties
                 </label>
@@ -382,8 +382,8 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
                       : "0"}{" "}
                   </p>
                 )}
-              </div>
-
+              </div> */}
+{/* 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Interest Received
@@ -413,7 +413,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
                       : "0"}
                   </p>
                 )}
-              </div>
+              </div> */}
             </div>
           </div>
 
