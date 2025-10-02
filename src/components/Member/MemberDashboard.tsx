@@ -192,7 +192,7 @@ const MemberDashboard: React.FC = () => {
 
           {/* Loan Status Section */}
           {latestLoan && (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 max-w-md w-full">
               <div className="flex items-center">
                 <Clock className="w-5 h-5 text-blue-600 mr-3" />
                 <div>
