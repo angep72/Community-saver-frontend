@@ -94,7 +94,7 @@ const LoanApproval: React.FC = () => {
 
     const action = actionType === "approve" ? "approve" : "reject";
 
-    return `Are you sure you want to ${action} the loan request of $${selectedLoan.amount.toLocaleString()} from ${
+    return `Are you sure you want to ${action} the loan request of €${selectedLoan.amount.toLocaleString()} from ${
       member ? `${member.firstName} ${member.lastName}` : ""
     }?`;
   };
@@ -234,7 +234,7 @@ const LoanApproval: React.FC = () => {
                           <DollarSign className="w-4 h-4 text-gray-400" />
                         </div>
                         <p className="text-xl font-bold text-gray-900 mt-1">
-                          ${loan.amount.toLocaleString()}
+                          €{loan.amount.toLocaleString()}
                         </p>
                       </div>
 
@@ -246,7 +246,7 @@ const LoanApproval: React.FC = () => {
                           <DollarSign className="w-4 h-4 text-gray-400" />
                         </div>
                         <p className="text-xl font-bold text-gray-900 mt-1">
-                          ${(loan.totalAmount ?? 0).toLocaleString()}
+                          €{(loan.totalAmount ?? 0).toLocaleString()}
                         </p>
                       </div>
 
@@ -323,7 +323,7 @@ const LoanApproval: React.FC = () => {
                             Interest Amount:
                           </span>
                           <span className="font-medium ml-2">
-                            $
+                            €
                             {(
                               (loan.totalAmount ?? 0) - loan.amount
                             ).toLocaleString()}
@@ -365,7 +365,7 @@ const LoanApproval: React.FC = () => {
                       loan.status === "active") && (
                       <button
                         onClick={() => handleRepayClick(loan)}
-                        className="inline-flex items-center px-3 py-1 bg-emerald-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                        className="inline-flex items-center px-3 py-1 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
                       >
                         <DollarSign className="w-4 h-4 mr-1" />
                         Repay Loan
@@ -431,7 +431,7 @@ const LoanApproval: React.FC = () => {
             <p className="mb-2 text-sm text-gray-700">
               Total Repayment:{" "}
               <span className="font-bold">
-                $
+                €
                 {(
                   selectedLoan.repaymentAmount ??
                   selectedLoan.totalAmount ??
@@ -442,7 +442,7 @@ const LoanApproval: React.FC = () => {
             <p className="mb-2 text-sm text-gray-700">
               Already Paid:{" "}
               <span className="font-bold">
-                ${(selectedLoan.paidAmount || 0).toLocaleString()}
+                €{(selectedLoan.paidAmount || 0).toLocaleString()}
               </span>
             </p>
             <label className="text-sm font-medium text-gray-700">
@@ -467,13 +467,13 @@ const LoanApproval: React.FC = () => {
                       0) - (selectedLoan.paidAmount || 0)
                   )
                 }
-                className="px-3 py-1 text-sm bg-blue-100 text-blue-800 rounded-lg hover:bg-blue-200 transition-colors w-1/2"
+                className="px-3 py-1 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-1/2"
               >
                 Pay All
               </button>
               <button
                 onClick={handleRepaySubmit}
-                className="inline-flex items-center px-3 py-1 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-200 hover:text-emerald-700 transition-colors w-1/2"
+                className="inline-flex items-center px-3 py-1 text-sm bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors w-1/2"
               >
                 Confirm
               </button>
