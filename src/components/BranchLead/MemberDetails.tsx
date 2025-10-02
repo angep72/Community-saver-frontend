@@ -299,7 +299,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
                     )}
                     {addDate && new Date(addDate).getDate() > 10 && (
                       <span className="text-yellow-700 text-xs block mb-2">
-                        Contribution after 10th: Penalty of $25 will be applied
+                        Contribution after 10th: Penalty of €25 will be applied
                       </span>
                     )}
                     <div className="flex space-x-2 mt-2">
@@ -329,7 +329,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
                 {isEditing ? (
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
-                      $
+                      €
                     </span>
                     <input
                       type="number"
@@ -345,7 +345,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
                   </div>
                 ) : (
                   <p className="text-lg font-semibold text-gray-900">
-                    $
+                    €
                     {typeof member.totalContributions === "number"
                       ? member.totalContributions.toLocaleString()
                       : "0"}
@@ -434,7 +434,7 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
                   <div className="flex items-center">
                     <DollarSign className="w-4 h-4 text-emerald-600 mr-2" />
                     <span className="font-medium">
-                      $
+                      €
                       {typeof contribution.amount === "number"
                         ? contribution.amount.toLocaleString()
                         : "0"}
