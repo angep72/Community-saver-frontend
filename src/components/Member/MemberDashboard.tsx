@@ -113,13 +113,16 @@ const MemberDashboard: React.FC = () => {
       setLoading(true);
       try {
         const data = await fetchMemberShares();
-        const sharesArray = data.data || data.shares || data;
-        const currentShare = Array.isArray(sharesArray)
-          ? sharesArray.find(
-              (share: any) =>
-                String(share._id || share.id) === String(currentUser._id)
-            )
-          : null;
+        // Access the array directly like in GroupShares component
+        const sharesArray = Array.isArray(data) ? data : [];
+        
+        // Find current user's share by matching ID
+        const currentShare = sharesArray.find(
+          (share: any) =>
+            String(share.id || share._id) === String(currentUser._id || currentUser.id)
+        );
+        
+        console.log("Member's share:", currentShare);
         setMemberShares(currentShare);
       } catch (error) {
         console.error("Failed to fetch member shares", error);
@@ -128,7 +131,7 @@ const MemberDashboard: React.FC = () => {
       setLoading(false);
     };
     getShares();
-  }, []);
+  }, [currentUser._id, currentUser.id]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -185,8 +188,7 @@ const MemberDashboard: React.FC = () => {
             ))}
           </div>
 
-
-          Loan Status Section
+          {/* Loan Status Section */}
           {latestLoan && (
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
               <div className="flex items-center">
@@ -293,8 +295,8 @@ const MemberDashboard: React.FC = () => {
               onClose={() => setShowLoanForm(false)}
               maxAmount={maxLoanAmount}
               interestRate={rules.interestRate}
-              availableBalance={availableBalance} // Pass available balance
-              userSavings={userSavings} // Pass user savings
+              availableBalance={availableBalance}
+              userSavings={userSavings}
             />
           )}
 
