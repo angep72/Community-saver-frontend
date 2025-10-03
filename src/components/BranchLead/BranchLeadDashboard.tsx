@@ -6,34 +6,49 @@ import {
   CheckCircle,
   AlertCircle,
   Edit,
+  Plus,
+  History,
+  Clock,
+  Calculator,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
-import { getGroupTheme } from "../../utils/calculations";
+import { getGroupTheme, calculateMaxLoanAmount } from "../../utils/calculations";
 import MemberDetails from "./MemberDetails";
-import { approveOrReject, updateUser } from "../../utils/api";
+import LoanRequestForm from "../Member/LoanRequestForm";
+import ContributionHistory from "../Member/ContributionHistory";
+import { approveOrReject, updateUser, addLoan } from "../../utils/api";
 import { Loan, User } from "../../types";
 
 const BranchLeadDashboard: React.FC = () => {
   const { state, dispatch } = useApp();
-  const { currentUser, users, loans } = state;
+  const { currentUser: rawCurrentUser, users, loans, groupRules } = state;
   const [selectedLoan, setSelectedLoan] = useState<Loan | null>(null);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(
     null
   );
-
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [showLoanForm, setShowLoanForm] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Get current user from users array (similar to Member Dashboard)
+  const currentUser =
+    users.find((u) => u._id === rawCurrentUser?.id) || rawCurrentUser;
 
   if (!currentUser || currentUser.role !== "branch_lead") return null;
 
-  // Filter members in the same branch and same color
+  // Filter members in the same branch
   const branchMembers = users.filter(
     (user) => user.role === "member" && user.branch === currentUser.branch
   );
 
-  // Get loans for branch members
-  const branchLoans = loans.filter((loan) =>
-    branchMembers.some((member) => member.id === loan.memberId)
-  );
+  // Get loans for branch members (excluding branch lead's own loans)
+  const branchLoans = loans.filter((loan) => {
+    const loanMemberId = typeof loan.member === "object" ? loan.member._id : loan.member;
+    const isCurrentUser = loanMemberId === currentUser._id || loanMemberId === currentUser.id;
+    return !isCurrentUser && branchMembers.some((member) => 
+      (member.id === loan.memberId || member._id === loan.memberId)
+    );
+  });
 
   const pendingLoans = branchLoans.filter(
     (loan) => loan.status === "pending"
@@ -41,7 +56,8 @@ const BranchLeadDashboard: React.FC = () => {
   const activeLoans = branchLoans.filter(
     (loan) => loan.status === "active"
   ).length;
-  // Total branch savings should include all member savings plus all penalties
+  
+  // Total branch savings
   const totalBranchSavings = branchMembers.reduce(
     (sum, member) =>
       sum +
@@ -51,6 +67,38 @@ const BranchLeadDashboard: React.FC = () => {
       (typeof member.penalties === "number" ? member.penalties : 0),
     0
   );
+
+  // Loan eligibility for branch lead (same as Member Dashboard)
+  const groupKey = currentUser.branch?.toLowerCase();
+  const rules = groupRules[groupKey];
+  const maxLoanAmount = rules
+    ? calculateMaxLoanAmount(
+        currentUser,
+        rules.maxLoanMultiplier,
+        rules.maxLoanAmount
+      )
+    : 0;
+
+  const availableBalance = state.users.reduce(
+    (sum, user) => sum + user.totalContributions,
+    0
+  );
+  const userSavings = currentUser.totalContributions || 0;
+  const interestReceived = currentUser.interestReceived || 0;
+
+  // Get branch lead's own loans (same filtering as Member Dashboard)
+  const userLoans = state.loans.filter((loan) => {
+    if (typeof loan.member === "object") {
+      return loan.member._id === currentUser._id;
+    }
+    return loan.member === currentUser._id;
+  });
+
+  const latestLoan = userLoans[0];
+  const eligible =
+    !latestLoan ||
+    (latestLoan.status && ["repaid", "rejected"].includes(latestLoan.status));
+
   const stats = [
     {
       title: "Branch Members",
@@ -61,7 +109,7 @@ const BranchLeadDashboard: React.FC = () => {
     },
     {
       title: "Total Branch Savings",
-      value: `$${totalBranchSavings.toLocaleString()}`,
+      value: `€${totalBranchSavings.toLocaleString()}`,
       icon: DollarSign,
       color: "text-emerald-600",
       bg: "bg-emerald-100",
@@ -82,13 +130,41 @@ const BranchLeadDashboard: React.FC = () => {
     },
   ];
 
+  // Personal stats for branch lead
+  const personalStats = [
+    {
+      title: "Total Savings",
+      value: `€${userSavings.toLocaleString()}`,
+      icon: DollarSign,
+      color: "text-emerald-600",
+      bg: "bg-emerald-100",
+    },
+    {
+      title: "Interest Received",
+      value: `€${interestReceived.toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })}`,
+      icon: TrendingUp,
+      color: "text-blue-600",
+      bg: "bg-blue-100",
+    },
+    {
+      title: "Max Loanable",
+      value: `€${maxLoanAmount.toLocaleString()}`,
+      icon: Calculator,
+      color: "text-purple-600",
+      bg: "bg-purple-100",
+    },
+  ];
+
   // Branch lead can always edit
   const getMemberUpdateAccess = (_memberId: string) => true;
 
   const handleLoanAction = (loan: Loan, action: "approve" | "reject") => {
     setSelectedLoan(loan);
     setActionType(action);
-    setTimeout(() => confirmAction(), 0); // ensure state is set before calling
+    setTimeout(() => confirmAction(), 0);
   };
 
   const confirmAction = async () => {
@@ -98,11 +174,9 @@ const BranchLeadDashboard: React.FC = () => {
       const backendLoan = await approveOrReject(
         selectedLoan.id || (selectedLoan._id as string),
         actionType === "approve" ? "approved" : "rejected"
-        // actionType === "reject" ? "Rejected by admin" : undefined
       );
       dispatch({ type: "UPDATE_LOAN", payload: backendLoan });
 
-      // If approved, update the member's active loan (optional, if needed)
       if (actionType === "approve" && backendLoan.member) {
         const updatedMember: User = {
           ...backendLoan.member,
@@ -121,6 +195,28 @@ const BranchLeadDashboard: React.FC = () => {
     setActionType(null);
   };
 
+  // Handler for loan request submission
+  const handleLoanRequestSubmit = async (loanData: any) => {
+    console.log("Branch Lead submitting loan request:", loanData);
+    try {
+      const response = await addLoan({
+        ...loanData,
+        member: currentUser._id || currentUser.id,
+        memberId: currentUser._id || currentUser.id
+      });
+      
+      console.log("Loan request response:", response);
+      
+      if (response) {
+        dispatch({ type: "ADD_LOAN", payload: response });
+      }
+      
+      setShowLoanForm(false);
+    } catch (error) {
+      console.error("Failed to submit loan request:", error);
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -132,7 +228,7 @@ const BranchLeadDashboard: React.FC = () => {
         </p>
       </div>
 
-      {/* Stats Grid */}
+      {/* Branch Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {stats.map((stat, index) => (
           <div
@@ -156,7 +252,78 @@ const BranchLeadDashboard: React.FC = () => {
         ))}
       </div>
 
-      {/* Access Notice */}
+      {/* Personal Finance Section */}
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          Your Personal Finance
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {personalStats.map((stat, index) => (
+            <div
+              key={index}
+              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    {stat.title}
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 mt-2">
+                    {stat.value}
+                  </p>
+                </div>
+                <div className={`${stat.bg} rounded-lg p-3`}>
+                  <stat.icon className={`w-6 h-6 ${stat.color}`} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Loan Status Section */}
+      {latestLoan && (
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6 max-w-md w-full">
+          <div className="flex items-center">
+            <Clock className="w-5 h-5 text-blue-600 mr-3" />
+            <div>
+              <h3 className="font-medium text-blue-800">Your Loan Status</h3>
+              <p className="text-sm text-gray-700 mt-1">
+                Status:{" "}
+                <span className="font-semibold">{latestLoan.status}</span>
+                <br />
+                Amount: €{latestLoan.amount.toLocaleString()}
+                <br />
+                Due Date: {new Date(latestLoan.dueDate).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex flex-wrap gap-4 mb-8">
+        <button
+          onClick={() => setShowLoanForm(true)}
+          disabled={!eligible}
+          className={`flex items-center px-6 py-3 rounded-lg font-medium transition-all ${
+            eligible
+              ? `bg-emerald-700 text-white hover:opacity-90 shadow-sm`
+              : "bg-gray-100 text-gray-400 cursor-not-allowed"
+          }`}
+        >
+          <Plus className="w-5 h-5 mr-2" />
+          Request Loan
+        </button>
+
+        <button
+          onClick={() => setShowHistory(true)}
+          className="flex items-center px-6 py-3 bg-white border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          <History className="w-5 h-5 mr-2" />
+          View History
+        </button>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Branch Members */}
@@ -167,7 +334,6 @@ const BranchLeadDashboard: React.FC = () => {
           <div className="space-y-4 max-h-96 overflow-y-auto">
             {branchMembers.map((member) => {
               const memberTheme = getGroupTheme("green-200");
-              // Only show edit button if branch lead's group matches member's group
               const canEdit = currentUser.branch === member.branch;
 
               return (
@@ -187,8 +353,7 @@ const BranchLeadDashboard: React.FC = () => {
                       </p>
                       <div className="flex items-center space-x-2 text-sm text-gray-500">
                         <span>
-                          {" "}
-                          $
+                          €
                           {typeof member.totalContributions === "number"
                             ? member.totalContributions.toLocaleString()
                             : 0}
@@ -235,6 +400,7 @@ const BranchLeadDashboard: React.FC = () => {
           </div>
         </div>
 
+        {/* Pending Loan Requests */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">
             Pending Loan Requests
@@ -244,7 +410,7 @@ const BranchLeadDashboard: React.FC = () => {
               .filter((loan) => loan.status === "pending")
               .map((loan) => {
                 const member = branchMembers.find(
-                  (m) => m.id === loan.memberId
+                  (m) => (m.id === loan.memberId || m._id === loan.memberId)
                 );
                 if (!member) return null;
 
@@ -271,7 +437,7 @@ const BranchLeadDashboard: React.FC = () => {
                             {member.firstName}
                           </p>
                           <p className="text-sm text-gray-500">
-                            ${loan.amount.toLocaleString()} requested
+                            €{loan.amount.toLocaleString()} requested
                           </p>
                         </div>
                       </div>
@@ -281,12 +447,6 @@ const BranchLeadDashboard: React.FC = () => {
                     </div>
 
                     <div className="grid grid-cols-2 gap-4 mb-3 text-sm">
-                      <div>
-                        <span className="text-gray-600">Repayment:</span>
-                        <span className="ml-1 font-medium">
-                          {/* ${loan.repaymentAmount.toLocaleString()} */}
-                        </span>
-                      </div>
                       <div>
                         <span className="text-gray-600">Due:</span>
                         <span className="ml-1 font-medium">
@@ -324,12 +484,28 @@ const BranchLeadDashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Modals */}
       {selectedMember && (
         <MemberDetails
           memberId={selectedMember}
           canEdit={getMemberUpdateAccess(selectedMember)}
           onClose={() => setSelectedMember(null)}
         />
+      )}
+
+      {showLoanForm && (
+        <LoanRequestForm
+          onClose={() => setShowLoanForm(false)}
+          maxAmount={maxLoanAmount}
+          interestRate={rules?.interestRate}
+          availableBalance={availableBalance}
+          userSavings={userSavings}
+          onSubmit={handleLoanRequestSubmit}
+        />
+      )}
+
+      {showHistory && (
+        <ContributionHistory onClose={() => setShowHistory(false)} />
       )}
     </div>
   );
