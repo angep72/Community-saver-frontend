@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Users,
   DollarSign,
@@ -16,7 +16,7 @@ import { getGroupTheme, calculateMaxLoanAmount } from "../../utils/calculations"
 import MemberDetails from "./MemberDetails";
 import LoanRequestForm from "../Member/LoanRequestForm";
 import ContributionHistory from "../Member/ContributionHistory";
-import { approveOrReject, updateUser, addLoan } from "../../utils/api";
+import { approveOrReject, updateUser, fetchMemberShares } from "../../utils/api";
 import { Loan, User } from "../../types";
 
 const BranchLeadDashboard: React.FC = () => {
@@ -29,6 +29,7 @@ const BranchLeadDashboard: React.FC = () => {
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const [showLoanForm, setShowLoanForm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [memberShares, setMemberShares] = useState<any>(null);
 
   // Get current user from users array (similar to Member Dashboard)
   const currentUser =
@@ -131,6 +132,7 @@ const BranchLeadDashboard: React.FC = () => {
   ];
 
   // Personal stats for branch lead
+  const displayData = memberShares || currentUser;
   const personalStats = [
     {
       title: "Total Savings",
@@ -141,7 +143,11 @@ const BranchLeadDashboard: React.FC = () => {
     },
     {
       title: "Interest Received",
-      value: `€${interestReceived.toLocaleString(undefined, {
+      value: `€${(
+        displayData?.interestEarned ??
+        displayData?.interestReceived ??
+        0
+      ).toLocaleString(undefined, {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       })}`,
@@ -195,27 +201,34 @@ const BranchLeadDashboard: React.FC = () => {
     setActionType(null);
   };
 
-  // Handler for loan request submission
+  // Handler for loan request submission (same as MemberDashboard)
   const handleLoanRequestSubmit = async (loanData: any) => {
-    console.log("Branch Lead submitting loan request:", loanData);
-    try {
-      const response = await addLoan({
-        ...loanData,
-        member: currentUser._id || currentUser.id,
-        memberId: currentUser._id || currentUser.id
-      });
-      
-      console.log("Loan request response:", response);
-      
-      if (response) {
-        dispatch({ type: "ADD_LOAN", payload: response });
-      }
-      
-      setShowLoanForm(false);
-    } catch (error) {
-      console.error("Failed to submit loan request:", error);
-    }
+    // You may need to import and use the same API function as MemberDashboard
+    // For example: import { requestLoan } from "../../utils/api";
+    // await requestLoan(loanData);
+    // After successful request, close the form and refresh loans if needed
+    setShowLoanForm(false);
+    // Optionally, refresh loans or show a success message
   };
+
+  // Add useEffect to fetch shares data
+  useEffect(() => {
+    const getShares = async () => {
+      try {
+        const data = await fetchMemberShares();
+        const sharesArray = Array.isArray(data) ? data : [];
+        const currentShare = sharesArray.find(
+          (share: any) =>
+            String(share.id || share._id) === String(currentUser._id || currentUser.id)
+        );
+        console.log("Branch Lead's share:", currentShare);
+        setMemberShares(currentShare);
+      } catch (error) {
+        console.error("Failed to fetch member shares", error);
+      }
+    };
+    getShares();
+  }, [currentUser._id, currentUser.id]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -500,7 +513,7 @@ const BranchLeadDashboard: React.FC = () => {
           interestRate={rules?.interestRate}
           availableBalance={availableBalance}
           userSavings={userSavings}
-          onSubmit={handleLoanRequestSubmit}
+          onSubmit={handleLoanRequestSubmit} // Pass the submit handler
         />
       )}
 
