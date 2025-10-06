@@ -6,6 +6,7 @@ import {
   Calendar,
   Edit,
   Save,
+  Loader2,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { getGroupTheme } from "../../utils/calculations";
@@ -105,50 +106,58 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
       setAddError("Amount must be greater than 0");
       return;
     }
+
     setAddError("");
-    const dateObj = new Date(addDate);
-    const penalty = dateObj.getDate() > 10 ? 25 : 0;
-    const type = (penalty ? "penalty" : "regular") as
-      | "penalty"
-      | "regular"
-      | "interest";
-    const newContribution = {
-      id: `contrib-${Date.now()}`,
-      userId: member.id,
-      memberId: member.id,
-      amount: addAmount,
-      contributionDate: new Date(addDate).toISOString(),
-      month: getMonthName(addDate),
-      type,
-    };
+    setIsSubmitting(true);
 
     try {
-      setIsSubmitting(true); // Start loading
+      const dateObj = new Date(addDate);
+      const penalty = dateObj.getDate() > 10 ? 25 : 0;
+      const type = (penalty ? "penalty" : "regular") as
+        | "penalty"
+        | "regular"
+        | "interest";
+
+      const newContribution = {
+        id: `contrib-${Date.now()}`,
+        userId: member.id,
+        memberId: member.id,
+        amount: addAmount,
+        contributionDate: dateObj.toISOString(),
+        month: getMonthName(addDate),
+        type,
+      };
+
+      // Optimistic update
+      const optimisticContribution = {
+        ...newContribution,
+        _id: newContribution.id,
+      };
+
+      dispatch({
+        type: "ADD_CONTRIBUTION",
+        payload: optimisticContribution,
+      });
+
       const backendContribution = await addContribution(newContribution);
 
-      if (
-        backendContribution &&
-        (backendContribution.contribution.memberId ||
-          backendContribution.contribution.userId)
-      ) {
+      if (backendContribution?.contribution) {
+        // Update with actual backend data
         dispatch({
-          type: "ADD_CONTRIBUTION",
+          type: "UPDATE_CONTRIBUTION",
           payload: backendContribution.contribution,
         });
-      } else {
-        console.warn(
-          "Not dispatching ADD_CONTRIBUTION: invalid or undefined payload",
-          backendContribution
-        );
-      }
 
-      setShowAddMoney(false);
-      setAddAmount(200);
-      setAddDate(new Date().toISOString().slice(0, 10));
+        // Close modal and reset form
+        setShowAddMoney(false);
+        setAddAmount(200);
+        setAddDate(new Date().toISOString().slice(0, 10));
+      }
     } catch (error) {
-      console.error("Failed to add contribution in backend", error);
+      console.error("Failed to add contribution:", error);
+      // Rollback optimistic update if needed
     } finally {
-      setIsSubmitting(false); // Stop loading
+      setIsSubmitting(false);
     }
   };
 
@@ -308,14 +317,23 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
                       </button>
                       <button
                         onClick={handleAddMoney}
-                        disabled={isSubmitting} // Disable button while submitting
-                        className={`inline-flex items-center px-3 py-1 text-sm rounded-lg transition-colors w-1/2 bg-emerald-600 text-white hover:bg-emerald-700 ${
-                          isSubmitting ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
+                        disabled={isSubmitting}
+                        className={`inline-flex items-center justify-center px-3 py-1 text-sm rounded-lg w-1/2 
+        ${
+          isSubmitting
+            ? "bg-emerald-600 opacity-75 cursor-not-allowed"
+            : "bg-emerald-600 hover:bg-emerald-700"
+        } 
+        text-white transition-colors`}
                       >
-                        {isSubmitting
-                          ? "Adding Contribution..."
-                          : "Confirm"}
+                        {isSubmitting ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin text-white" />
+                            Adding...
+                          </>
+                        ) : (
+                          "Confirm"
+                        )}
                       </button>
                     </div>
                   </div>
