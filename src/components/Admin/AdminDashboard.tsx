@@ -7,6 +7,7 @@ import {
   CheckCircle,
   Clock,
   UserCheck,
+  AlertOctagon,
 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { NetContributions } from "../../types";
@@ -20,7 +21,7 @@ import { fetchNetContributions } from "../../utils/api";
 import RegistrationApproval from "./RegistrationApproval";
 
 // Constants
-const POLLING_INTERVAL = 5000; // 5 seconds
+const POLLING_INTERVAL = 30000; // 30 seconds instead of 5 seconds
 const MAX_RECENT_LOANS = 5;
 const BRANCHES = ["blue", "yellow", "red", "purple"] as const;
 
@@ -83,13 +84,28 @@ const AdminDashboard: React.FC = () => {
     // Initial fetch with loading spinner
     fetchNetData(true);
 
-    // Setup polling interval for background updates
-    pollingIntervalRef.current = setInterval(() => {
-      fetchNetData(false);
-    }, POLLING_INTERVAL);
+    // Setup polling interval for background updates - only if tab is visible
+    const handleVisibilityChange = () => {
+      if (document.hidden && pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      } else if (!document.hidden && !pollingIntervalRef.current) {
+        pollingIntervalRef.current = setInterval(() => {
+          fetchNetData(false);
+        }, POLLING_INTERVAL);
+      }
+    };
 
-    // Cleanup function
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    if (!document.hidden) {
+      pollingIntervalRef.current = setInterval(() => {
+        fetchNetData(false);
+      }, POLLING_INTERVAL);
+    }
+
     return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
       isMountedRef.current = false;
       if (pollingIntervalRef.current) {
         clearInterval(pollingIntervalRef.current);
@@ -254,9 +270,23 @@ const AdminDashboard: React.FC = () => {
                   </h3>
                   <div className="space-y-4">
                     {loans.length === 0 ? (
-                      <p className="text-sm text-gray-500 text-center py-4">
-                        No loan requests yet
-                      </p>
+                      <div className="space-y-4">
+                        {[...Array(3)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg animate-pulse"
+                          >
+                            <div className="flex-1">
+                              <div className="h-4 bg-gray-200 rounded w-32 mb-2"></div>
+                              <div className="h-3 bg-gray-200 rounded w-20"></div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-gray-200 rounded-full"></div>
+                              <div className="h-6 bg-gray-200 rounded-full w-16"></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     ) : (
                       loans.slice(0, MAX_RECENT_LOANS).map((loan) => {
                         const member = users.find((u) => u._id === loan.member?._id);

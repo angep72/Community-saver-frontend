@@ -2,6 +2,25 @@ import React, { useEffect, useState } from "react";
 import { fetchUsers, updateUser } from "../../utils/api";
 import { User } from "../../types";
 
+const RegistrationSkeleton = () => (
+  <div className="space-y-4">
+    {[1, 2, 3].map((i) => (
+      <div key={i} className="p-3 bg-gray-50 rounded-lg animate-pulse">
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <div className="h-4 w-48 bg-gray-200 rounded"></div>
+            <div className="h-3 w-32 bg-gray-200 rounded"></div>
+          </div>
+          <div className="flex gap-2">
+            <div className="h-8 w-20 bg-gray-200 rounded"></div>
+            <div className="h-8 w-20 bg-gray-200 rounded"></div>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 const RegistrationApproval: React.FC = () => {
   const [pendingUsers, setPendingUsers] = useState<User[]>([]);
   const [approvedUsers, setApprovedUsers] = useState<User[]>([]);
@@ -103,7 +122,7 @@ const RegistrationApproval: React.FC = () => {
         <div className="text-red-600 mb-2">{error}</div>
       )}
       {loading ? (
-        <p>Loading...</p>
+        <RegistrationSkeleton />
       ) : usersToShow.length === 0 ? (
         <p className="text-gray-500">
           {activeTab === "pending"
