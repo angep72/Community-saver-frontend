@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import {
   Users,
   DollarSign,
@@ -19,33 +19,86 @@ import Penalties from "./Penalties";
 import { fetchNetContributions } from "../../utils/api";
 import RegistrationApproval from "./RegistrationApproval";
 
+// Constants
+const POLLING_INTERVAL = 5000; // 5 seconds
+const MAX_RECENT_LOANS = 5;
+const BRANCHES = ["blue", "yellow", "red", "purple"] as const;
+
 const AdminDashboard: React.FC = () => {
   const { state } = useApp();
   const { users, loans } = state;
+  
+  // State management
   const [activeTab, setActiveTab] = useState("overview");
   const [loading, setLoading] = useState(true);
+  const [netContributions, setNetContributions] = useState<NetContributions | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Refs for cleanup
+  const isMountedRef = useRef(true);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Memoized calculations
   const pendingLoans = loans.filter((loan) => loan.status === "pending").length;
-  const totalMembers = users.filter((user) => user.role === "member" && user.status === "approved").length;
+  const totalMembers = users.filter(
+    (user) => user.role === "member" && user.status === "approved"
+  ).length;
   const pendingRegistrations = users.filter((user) => user.status === "pending").length;
 
-  const [netContributions, setNetContributions] = useState<NetContributions | null>(null);
-
-  useEffect(() => {
-    const fetchNet = async () => {
-      setLoading(true);
-      try {
-        const net = await fetchNetContributions();
-        setNetContributions(net);
-      } catch (error) {
-        console.error("Failed to fetch net contributions", error);
+  // Fetch net contributions with error handling
+  const fetchNetData = useCallback(async (showLoader = false) => {
+    try {
+      if (showLoader) {
+        setLoading(true);
       }
-      setLoading(false);
-    };
-    fetchNet();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // Only run once on mount
+      
+      const net = await fetchNetContributions();
+      
+      // Only update state if component is still mounted
+      if (isMountedRef.current) {
+        setNetContributions(net);
+        setError(null);
+      }
+    } catch (err) {
+      console.error("Failed to fetch net contributions:", err);
+      
+      if (isMountedRef.current) {
+        setError("Failed to load financial data. Retrying...");
+        // Don't clear existing data on subsequent failures
+        if (showLoader) {
+          setNetContributions(null);
+        }
+      }
+    } finally {
+      if (isMountedRef.current && showLoader) {
+        setLoading(false);
+      }
+    }
+  }, []);
 
+  // Setup polling effect
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    // Initial fetch with loading spinner
+    fetchNetData(true);
+
+    // Setup polling interval for background updates
+    pollingIntervalRef.current = setInterval(() => {
+      fetchNetData(false);
+    }, POLLING_INTERVAL);
+
+    // Cleanup function
+    return () => {
+      isMountedRef.current = false;
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [fetchNetData]);
+
+  // Stats configuration
   const stats = [
     {
       title: "Total Members",
@@ -90,6 +143,7 @@ const AdminDashboard: React.FC = () => {
     },
   ];
 
+  // Tabs configuration
   const tabs = [
     { id: "overview", label: "Overview", icon: TrendingUp },
     { id: "registrations", label: "Registration Approval", icon: UserCheck },
@@ -97,7 +151,19 @@ const AdminDashboard: React.FC = () => {
     { id: "loans", label: "Loan Approval", icon: CheckCircle },
     { id: "groupshares", label: "Group Shares & Interest", icon: DollarSign },
     { id: "penalties", label: "Penalties", icon: AlertCircle },
-  ];  
+  ];
+
+  // Get branch color classes
+  const getBranchColorClass = (branch: string): string => {
+    const colorMap: Record<string, string> = {
+      blue: "bg-blue-500",
+      yellow: "bg-yellow-500",
+      red: "bg-red-500",
+      purple: "bg-purple-500",
+    };
+    return colorMap[branch] || "bg-gray-500";
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {loading && (
@@ -120,6 +186,12 @@ const AdminDashboard: React.FC = () => {
               Admin Dashboard
             </h1>
             <p className="text-gray-600">Manage the financial system</p>
+            {error && (
+              <div className="mt-2 text-sm text-amber-600 flex items-center">
+                <AlertCircle className="w-4 h-4 mr-1" />
+                {error}
+              </div>
+            )}
           </div>
 
           {/* Stats Grid */}
@@ -127,7 +199,7 @@ const AdminDashboard: React.FC = () => {
             {stats.map((stat) => (
               <div
                 key={stat.title}
-                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+                className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 transition-shadow hover:shadow-md"
               >
                 <div className="flex items-center justify-between">
                   <div>
@@ -148,16 +220,17 @@ const AdminDashboard: React.FC = () => {
 
           {/* Navigation Tabs */}
           <div className="border-b border-gray-200 mb-8">
-            <nav className="-mb-px flex space-x-8">
+            <nav className="-mb-px flex space-x-8 overflow-x-auto">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors ${
+                  className={`flex items-center py-2 px-1 border-b-2 font-medium text-sm transition-colors whitespace-nowrap ${
                     activeTab === tab.id
                       ? "border-emerald-700 text-emerald-700"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
+                  aria-current={activeTab === tab.id ? "page" : undefined}
                 >
                   <tab.icon className="w-5 h-5 mr-2" />
                   {tab.label}
@@ -181,42 +254,50 @@ const AdminDashboard: React.FC = () => {
                     Recent Loan Requests
                   </h3>
                   <div className="space-y-4">
-                    {loans.slice(0, 5).map((loan) => {
-                      const member = users.find((u) => u._id === loan.member?._id);
-                      return (
-                        <div
-                          key={loan._id || loan.id}
-                          className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                        >
-                          <div>
-                            <p className="font-medium text-gray-900">
-                              {member?.firstName}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              €{loan.amount.toLocaleString()}
-                            </p>
+                    {loans.length === 0 ? (
+                      <p className="text-sm text-gray-500 text-center py-4">
+                        No loan requests yet
+                      </p>
+                    ) : (
+                      loans.slice(0, MAX_RECENT_LOANS).map((loan) => {
+                        const member = users.find((u) => u._id === loan.member?._id);
+                        return (
+                          <div
+                            key={loan._id || loan.id}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                          >
+                            <div>
+                              <p className="font-medium text-gray-900">
+                                {member?.firstName || "Unknown Member"}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                €{loan.amount.toLocaleString()}
+                              </p>
+                            </div>
+                            <div className="flex items-center">
+                              {loan.status === "pending" ? (
+                                <Clock className="w-4 h-4 text-blue-500 mr-2" />
+                              ) : loan.status === "approved" ? (
+                                <CheckCircle className="w-4 h-4 text-emerald-500 mr-2" />
+                              ) : (
+                                <AlertCircle className="w-4 h-4 text-red-500 mr-2" />
+                              )}
+                              <span
+                                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  loan.status === "pending"
+                                    ? "bg-blue-100 text-blue-800"
+                                    : loan.status === "approved"
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : "bg-red-100 text-red-800"
+                                }`}
+                              >
+                                {loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center">
-                            {loan.status === "pending" ? (
-                              <Clock className="w-4 h-4 text-blue-500 mr-2" />
-                            ) : (
-                              <CheckCircle className="w-4 h-4 text-emerald-500 mr-2" />
-                            )}
-                            <span
-                              className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                loan.status === "pending"
-                                  ? "bg-blue-100 text-blue-800"
-                                  : loan.status === "approved"
-                                  ? "bg-emerald-100 text-emerald-800"
-                                  : "bg-red-100 text-red-800"
-                              }`}
-                            >
-                              {loan.status}
-                            </span>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })
+                    )}
                   </div>
                 </div>
 
@@ -226,31 +307,24 @@ const AdminDashboard: React.FC = () => {
                     Branch Distribution
                   </h3>
                   <div className="space-y-4">
-                    {["blue", "yellow", "red", "purple"].map((branch) => {
+                    {BRANCHES.map((branch) => {
                       const groupMembers = users.filter(
                         (u) => u.branch === branch && u.role === "member"
                       );
                       const totalSavings = groupMembers.reduce(
-                        (sum, u) => sum + u.totalContributions,
+                        (sum, u) => sum + (u.totalContributions || 0),
                         0
                       );
 
                       return (
                         <div
                           key={branch}
-                          className="flex items-center justify-between"
+                          className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
                         >
                           <div className="flex items-center">
                             <div
-                              className={`w-4 h-4 rounded-full mr-3 ${
-                                branch === "blue"
-                                  ? "bg-blue-500"
-                                  : branch === "yellow"
-                                  ? "bg-yellow-500"
-                                  : branch === "red"
-                                  ? "bg-red-500"
-                                  : "bg-purple-500"
-                              }`}
+                              className={`w-4 h-4 rounded-full mr-3 ${getBranchColorClass(branch)}`}
+                              aria-hidden="true"
                             />
                             <span className="font-medium text-gray-900 capitalize">
                               {branch} Branch
@@ -258,7 +332,7 @@ const AdminDashboard: React.FC = () => {
                           </div>
                           <div className="text-right">
                             <p className="font-medium text-gray-900">
-                              {groupMembers.length} members
+                              {groupMembers.length} {groupMembers.length === 1 ? "member" : "members"}
                             </p>
                             <p className="text-sm text-gray-500">
                               €{totalSavings.toLocaleString()}
