@@ -22,7 +22,6 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
   canEdit,
   onClose,
 }) => {
-  // Move all hooks to top-level before any conditional return
   const { state, dispatch } = useApp();
   const { users, contributions } = state;
   const member = users.find((u) => u.id === memberId || u._id === memberId);
@@ -34,11 +33,11 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
     interestReceived: member?.interestReceived || 0,
   });
 
-  // Add Money state (move above conditional return)
   const [showAddMoney, setShowAddMoney] = useState(false);
   const [addAmount, setAddAmount] = useState(200);
   const [addDate, setAddDate] = useState(new Date().toISOString().slice(0, 10));
   const [addError, setAddError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false); // Loading state
 
   if (!member) return null;
 
@@ -50,13 +49,11 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
       memberId
   );
 
-  // Helper to get month name
   const getMonthName = (dateStr: string) => {
     const d = new Date(dateStr);
     return d.toLocaleString("default", { month: "long" });
   };
 
-  // Add Money state
   const handleSave = async () => {
     const adjustmentAmount =
       editData.totalSavings - (member.totalContributions || 0);
@@ -103,7 +100,6 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
     }
   };
 
-  // Add Money logic
   const handleAddMoney = async () => {
     if (addAmount <= 0) {
       setAddError("Amount must be greater than 0");
@@ -127,9 +123,9 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
     };
 
     try {
+      setIsSubmitting(true); // Start loading
       const backendContribution = await addContribution(newContribution);
 
-      // Only dispatch if backendContribution is valid and has memberId or userId
       if (
         backendContribution &&
         (backendContribution.contribution.memberId ||
@@ -147,11 +143,12 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
       }
 
       setShowAddMoney(false);
-      setAddAmount(200); // Reset to default value
+      setAddAmount(200);
       setAddDate(new Date().toISOString().slice(0, 10));
     } catch (error) {
-      // Optionally handle error (e.g., show notification)
       console.error("Failed to add contribution in backend", error);
+    } finally {
+      setIsSubmitting(false); // Stop loading
     }
   };
 
@@ -311,9 +308,14 @@ const MemberDetails: React.FC<MemberDetailsProps> = ({
                       </button>
                       <button
                         onClick={handleAddMoney}
-                        className={`inline-flex items-center px-3 py-1 text-sm rounded-lg transition-colors w-1/2 bg-emerald-600 text-white hover:bg-emerald-700"`}
+                        disabled={isSubmitting} // Disable button while submitting
+                        className={`inline-flex items-center px-3 py-1 text-sm rounded-lg transition-colors w-1/2 bg-emerald-600 text-white hover:bg-emerald-700 ${
+                          isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
                       >
-                        Confirm
+                        {isSubmitting
+                          ? "Adding Contribution..."
+                          : "Confirm"}
                       </button>
                     </div>
                   </div>

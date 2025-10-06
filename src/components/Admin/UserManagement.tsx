@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Plus, Edit, Trash2, Search, Filter } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Filter, Loader2 } from "lucide-react";
 import { useApp } from "../../context/AppContext";
 import { User } from "../../types";
 import { getGroupTheme } from "../../utils/calculations";
@@ -20,6 +20,8 @@ const UserManagement: React.FC = () => {
   const [deletingUser, setDeletingUser] = useState<User | null>(null);
   const [showMemberDetails, setShowMemberDetails] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState<string | null>(null);
+  const [isConfirming, setIsConfirming] = useState(false);
+  const [loadingUserId, setLoadingUserId] = useState<string | null>(null);
   const navigate = useNavigate();
 
   const token = localStorage.getItem("token");
@@ -76,26 +78,33 @@ const UserManagement: React.FC = () => {
   };
 
   const confirmDelete = async () => {
-    if (deletingUser) {
+    if (deletingUser && !isConfirming) {
+      setIsConfirming(true);
       try {
         await deleteUser(deletingUser.id);
         dispatch({ type: "DELETE_USER", payload: deletingUser.id });
       } catch (error) {
-        // Optionally handle error (e.g., show notification)
         console.error("Failed to delete user in backend", error);
+      } finally {
+        setIsConfirming(false);
+        setDeletingUser(null);
       }
-      setDeletingUser(null);
+    }
+  };
+
+  const handleAddMoney = async (user: User) => {
+    try {
+      setLoadingUserId(user.id);
+      setSelectedMemberId(user.id);
+      setShowMemberDetails(true);
+    } finally {
+      setLoadingUserId(null);
     }
   };
 
   const handleFormClose = () => {
     setShowUserForm(false);
     setEditingUser(null);
-  };
-
-  const handleAddMoney = (user: User) => {
-    setSelectedMemberId(user.id);
-    setShowMemberDetails(true);
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -333,17 +342,22 @@ const UserManagement: React.FC = () => {
               : `Are you sure you want to delete ${deletingUser.firstName}? This action cannot be undone.`
           }
           confirmText={
-            (deletingUser.totalContributions || 0) > 0 ? "OK" : "Delete"
+            (deletingUser.totalContributions || 0) > 0 
+              ? "OK" 
+              : isConfirming 
+                ? "Deleting..." 
+                : "Delete"
           }
           confirmVariant={
             (deletingUser.totalContributions || 0) > 0 ? "primary" : "danger"
           }
           onConfirm={
             (deletingUser.totalContributions || 0) > 0
-              ? () => setDeletingUser(null) // Just close dialog if user has contributions
+              ? () => setDeletingUser(null)
               : confirmDelete
           }
-          onCancel={() => setDeletingUser(null)}
+          onCancel={() => !isConfirming && setDeletingUser(null)}
+          disabled={isConfirming}
         />
       )}
 

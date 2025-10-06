@@ -9,6 +9,7 @@ interface ConfirmDialogProps {
   confirmVariant?: "primary" | "danger" | "warning";
   onConfirm: () => void;
   onCancel: () => void;
+  disabled?: boolean;
 }
 
 const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
@@ -19,6 +20,7 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
   confirmVariant = "primary",
   onConfirm,
   onCancel,
+  disabled = false,
 }) => {
   const getConfirmButtonClass = () => {
     switch (confirmVariant) {
@@ -72,7 +74,14 @@ const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             </button>
             <button
               onClick={onConfirm}
-              className={`flex-1 px-4 py-2 text-white rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors ${getConfirmButtonClass()}`}
+              disabled={disabled}
+              className={`flex-1 px-4 py-2 rounded-lg font-medium ${
+                disabled ? "opacity-50 cursor-not-allowed" : ""
+              } ${
+                confirmVariant === "danger"
+                  ? "bg-red-600 text-white hover:bg-red-700"
+                  : "bg-emerald-600 text-white hover:bg-emerald-700"
+              }`}
             >
               {confirmText}
             </button>
