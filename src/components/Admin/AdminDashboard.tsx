@@ -21,7 +21,7 @@ import { fetchNetContributions } from "../../utils/api";
 import RegistrationApproval from "./RegistrationApproval";
 
 // Constants
-const POLLING_INTERVAL = 30000; // 30 seconds instead of 5 seconds
+const POLLING_INTERVAL = 10000; // 30 seconds instead of 5 seconds
 const MAX_RECENT_LOANS = 5;
 const BRANCHES = ["blue", "yellow", "red", "purple"] as const;
 
