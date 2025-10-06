@@ -132,6 +132,12 @@ const UserManagement: React.FC = () => {
         return role;
     }
   };
+
+  // Add this helper function to ensure unique IDs
+  const getUserUniqueId = (user: User): string => {
+    return user.id || user._id || `user-${user.email}`;
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -222,8 +228,10 @@ const UserManagement: React.FC = () => {
                 const theme = getGroupTheme(
                   (user.branch || "blue").toLowerCase()
                 );
+                const uniqueId = getUserUniqueId(user);
+
                 return (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr key={uniqueId} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">

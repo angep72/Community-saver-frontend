@@ -185,7 +185,6 @@ const AdminDashboard: React.FC = () => {
             <h1 className="text-2xl font-bold text-gray-700 mb-2">
               Admin Dashboard
             </h1>
-            <p className="text-gray-600">Manage the financial system</p>
             {error && (
               <div className="mt-2 text-sm text-amber-600 flex items-center">
                 <AlertCircle className="w-4 h-4 mr-1" />
