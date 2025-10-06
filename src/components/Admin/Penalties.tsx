@@ -76,64 +76,70 @@ const Penalties: React.FC = () => {
   };
 
   return (
-    <div className="max-w-3xl mx-auto px-4 py-10">
-      <h2 className="text-2xl font-bold mb-6 text-red-700">Penalties</h2>
-      {loading ? (
-        <PenaltiesTableSkeleton />
-      ) : (
-        <table className="min-w-full bg-white rounded-lg shadow border">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="py-2 px-4 text-left">Member</th>
-              <th className="py-2 px-4 text-left">Contribution Date</th>
-              <th className="py-2 px-4 text-left">Penalty</th>
-              <th className="py-2 px-4 text-left">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {penalties.map((c) => {
-              const isPenalty = c.createdAt;
-              const penaltyId = c.id || c._id;
-              return (
-                <tr key={penaltyId}>
-                  <td className="py-2 px-4">{c.member.firstName}</td>
-                  <td className="py-2 px-4">
-                    {c.assignedDate
-                      ? new Date(c.assignedDate).toLocaleDateString()
-                      : "-"}
-                  </td>
-                  <td
-                    className={`py-2 px-4 font-bold ${
-                      isPenalty ? "text-red-600" : "text-green-600"
-                    }`}
-                  >
-                    {isPenalty ? "$25" : "No Penalty"}
-                  </td>
-                  <td className="py-2 px-4">
-                    {isPenalty ? (
-                      c.status === "paid" || paidPenalties.includes(penaltyId) ? (
-                        <span className="text-green-600 font-semibold">Repaid</span>
-                      ) : (
-                        <button
-                          className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 disabled:opacity-50"
-                          onClick={() => handlePayPenalty(penaltyId)}
-                          disabled={
-                            c.status === "paid" || paidPenalties.includes(penaltyId)
-                          }
-                        >
-                          Pay Penalty
-                        </button>
-                      )
-                    ) : (
-                      <span className="text-xs text-gray-500">-</span>
-                    )}
-                  </td>
+    <div className="w-full">
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <h2 className="text-2xl font-bold mb-6 text-red-700">Penalties</h2>
+        <div className="overflow-x-auto">
+          {loading ? (
+            <PenaltiesTableSkeleton />
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="py-2 px-4 text-left">Member</th>
+                  <th className="py-2 px-4 text-left">Contribution Date</th>
+                  <th className="py-2 px-4 text-left">Penalty</th>
+                  <th className="py-2 px-4 text-left">Action</th>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      )}
+              </thead>
+              <tbody>
+                {penalties.map((c) => {
+                  const isPenalty = c.createdAt;
+                  const penaltyId = c.id || c._id;
+                  return (
+                    <tr key={penaltyId}>
+                      <td className="py-2 px-4">{c.member.firstName}</td>
+                      <td className="py-2 px-4">
+                        {c.assignedDate
+                          ? new Date(c.assignedDate).toLocaleDateString()
+                          : "-"}
+                      </td>
+                      <td
+                        className={`py-2 px-4 font-bold ${
+                          isPenalty ? "text-red-600" : "text-green-600"
+                        }`}
+                      >
+                        {isPenalty ? "$25" : "No Penalty"}
+                      </td>
+                      <td className="py-2 px-4">
+                        {isPenalty ? (
+                          c.status === "paid" || paidPenalties.includes(penaltyId) ? (
+                            <span className="text-green-600 font-semibold">
+                              Repaid
+                            </span>
+                          ) : (
+                            <button
+                              className="bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 disabled:opacity-50"
+                              onClick={() => handlePayPenalty(penaltyId)}
+                              disabled={
+                                c.status === "paid" || paidPenalties.includes(penaltyId)
+                              }
+                            >
+                              Pay Penalty
+                            </button>
+                          )
+                        ) : (
+                          <span className="text-xs text-gray-500">-</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
