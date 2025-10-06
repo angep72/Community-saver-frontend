@@ -50,6 +50,7 @@ const MemberDashboard: React.FC = () => {
 
   const stats = [
     {
+      id: 'total-savings',
       title: "Total Savings",
       value: `€${(
         displayData?.totalContribution ??
@@ -61,6 +62,7 @@ const MemberDashboard: React.FC = () => {
       bg: "bg-emerald-100",
     },
     {
+      id: 'interest-received',
       title: "Interest Received",
       value: `€${(
         displayData?.interestEarned ??
@@ -79,6 +81,7 @@ const MemberDashboard: React.FC = () => {
       !currentUser.penalties.isPaid &&
       currentUser.penalties.pending > 0
       ? [{
+          id: 'penalties',
           title: "Penalties",
           value: `€${(currentUser.penalties.pending ?? 0).toLocaleString()}`,
           icon: AlertTriangle,
@@ -87,6 +90,7 @@ const MemberDashboard: React.FC = () => {
         }]
       : []),
     {
+      id: 'max-loanable',
       title: "Max Loanable",
       value: `€${(maxLoanAmount ?? 0).toLocaleString()}`,
       icon: Calculator,
@@ -168,9 +172,9 @@ const MemberDashboard: React.FC = () => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => (
+            {stats.map((stat) => (
               <div
-                key={index}
+                key={stat.id}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
               >
                 <div className="flex items-center justify-between">

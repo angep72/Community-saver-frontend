@@ -124,9 +124,9 @@ const AdminDashboard: React.FC = () => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => (
+            {stats.map((stat) => (
               <div
-                key={index}
+                key={stat.title}
                 className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
               >
                 <div className="flex items-center justify-between">
@@ -185,7 +185,7 @@ const AdminDashboard: React.FC = () => {
                       const member = users.find((u) => u._id === loan.member?._id);
                       return (
                         <div
-                          key={loan.id}
+                          key={loan._id || loan.id}
                           className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
                         >
                           <div>

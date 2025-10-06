@@ -172,4 +172,4 @@ export const loginUser = async (credentials: {
     localStorage.setItem("token", res.data.token);
   }
   return res.data;
-};
+}
