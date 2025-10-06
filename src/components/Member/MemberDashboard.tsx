@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import {
   DollarSign,
   TrendingUp,
@@ -15,6 +15,8 @@ import ContributionHistory from "./ContributionHistory";
 import { fetchMemberShares } from "../../utils/api";
 import { Bars } from "react-loader-spinner";
 
+const POLLING_INTERVAL = 10000; // 10 seconds
+
 const MemberDashboard: React.FC = () => {
   const { state } = useApp();
   const { users, currentUser: rawCurrentUser, groupRules } = state;
@@ -22,6 +24,8 @@ const MemberDashboard: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showLoanForm, setShowLoanForm] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const isMountedRef = useRef(true);
+  const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const currentUser =
     users.find((u) => u._id === rawCurrentUser?.id) || rawCurrentUser;
@@ -114,30 +118,71 @@ const MemberDashboard: React.FC = () => {
 
   
 
-  useEffect(() => {
-    const getShares = async () => {
+  // Convert getShares to a memoized callback
+  const fetchMemberData = useCallback(async (showLoader = false) => {
+    if (showLoader) {
       setLoading(true);
-      try {
-        const data = await fetchMemberShares();
-        // Access the array directly like in GroupShares component
-        const sharesArray = Array.isArray(data) ? data : [];
-        
-        // Find current user's share by matching ID
+    }
+    try {
+      const data = await fetchMemberShares();
+      const sharesArray = Array.isArray(data) ? data : [];
+      
+      if (isMountedRef.current) {
         const currentShare = sharesArray.find(
           (share: any) =>
             String(share.id || share._id) === String(currentUser._id || currentUser.id)
         );
-        
-        console.log("Member's share:", currentShare);
         setMemberShares(currentShare);
-      } catch (error) {
-        console.error("Failed to fetch member shares", error);
+      }
+    } catch (error) {
+      console.error("Failed to fetch member shares", error);
+      if (isMountedRef.current) {
         setMemberShares(null);
       }
-      setLoading(false);
+    } finally {
+      if (isMountedRef.current && showLoader) {
+        setLoading(false);
+      }
+    }
+  }, [currentUser._id, currentUser.id]);
+
+  // Setup polling effect
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    // Initial fetch with loading spinner
+    fetchMemberData(true);
+
+    // Setup polling interval for background updates - only if tab is visible
+    const handleVisibilityChange = () => {
+      if (document.hidden && pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      } else if (!document.hidden && !pollingIntervalRef.current) {
+        pollingIntervalRef.current = setInterval(() => {
+          fetchMemberData(false);
+        }, POLLING_INTERVAL);
+      }
     };
-    getShares();
-  }, [rawCurrentUser?.id]);
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    if (!document.hidden) {
+      pollingIntervalRef.current = setInterval(() => {
+        fetchMemberData(false);
+      }, POLLING_INTERVAL);
+    }
+
+    // Cleanup
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      isMountedRef.current = false;
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current);
+        pollingIntervalRef.current = null;
+      }
+    };
+  }, [fetchMemberData]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
