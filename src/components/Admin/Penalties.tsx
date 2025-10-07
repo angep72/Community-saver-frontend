@@ -16,16 +16,16 @@ const PenaltiesTableSkeleton = () => (
       {[1, 2, 3, 4].map((i) => (
         <tr key={i} className="animate-pulse">
           <td className="py-2 px-4">
-            <div className="h-4 w-32 bg-gray-200 rounded"></div>
+            <div className="h-4 w-32 bg-emerald-100 rounded"></div>
           </td>
           <td className="py-2 px-4">
-            <div className="h-4 w-24 bg-gray-200 rounded"></div>
+            <div className="h-4 w-24 bg-emerald-100 rounded"></div>
           </td>
           <td className="py-2 px-4">
-            <div className="h-4 w-16 bg-gray-200 rounded"></div>
+            <div className="h-4 w-16 bg-emerald-100 rounded"></div>
           </td>
           <td className="py-2 px-4">
-            <div className="h-8 w-24 bg-gray-200 rounded"></div>
+            <div className="h-8 w-24 bg-emerald-200 rounded"></div>
           </td>
         </tr>
       ))}

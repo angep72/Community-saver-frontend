@@ -17,12 +17,12 @@ const SharesTableSkeleton = () => (
     {/* Stats Skeleton */}
     <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
       <div>
-        <div className="h-6 w-48 bg-gray-200 rounded mb-2"></div>
-        <div className="h-8 w-32 bg-gray-200 rounded"></div>
+        <div className="h-6 w-48 bg-emerald-100 rounded mb-2"></div>
+        <div className="h-8 w-32 bg-emerald-100 rounded"></div>
       </div>
       <div>
-        <div className="h-6 w-48 bg-gray-200 rounded mb-2"></div>
-        <div className="h-8 w-32 bg-gray-200 rounded"></div>
+        <div className="h-6 w-48 bg-emerald-100 rounded mb-2"></div>
+        <div className="h-8 w-32 bg-emerald-100 rounded"></div>
       </div>
     </div>
 
@@ -33,7 +33,7 @@ const SharesTableSkeleton = () => (
           <tr>
             {[...Array(6)].map((_, i) => (
               <th key={i} className="text-left py-3 px-4">
-                <div className="h-4 w-24 bg-gray-200 rounded"></div>
+                <div className="h-4 w-24 bg-emerald-100 rounded"></div>
               </th>
             ))}
           </tr>
@@ -46,7 +46,7 @@ const SharesTableSkeleton = () => (
             >
               {[...Array(6)].map((_, cellIdx) => (
                 <td key={cellIdx} className="py-3 px-4">
-                  <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                  <div className="h-4 w-20 bg-emerald-200 rounded"></div>
                 </td>
               ))}
             </tr>
