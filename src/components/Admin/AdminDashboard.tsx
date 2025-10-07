@@ -336,40 +336,60 @@ const AdminDashboard: React.FC = () => {
                     Branch Distribution
                   </h3>
                   <div className="space-y-4">
-                    {BRANCHES.map((branch) => {
-                      const groupMembers = users.filter(
-                        (u) => u.branch === branch && u.role === "member"
-                      );
-                      const totalSavings = groupMembers.reduce(
-                        (sum, u) => sum + (u.totalContributions || 0),
-                        0
-                      );
+                    {users.length === 0 ? (
+                      <div className="space-y-4">
+                        {[...Array(4)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between p-3 bg-gray-50 rounded-lg animate-pulse"
+                          >
+                            <div className="flex items-center flex-1">
+                              <div className="w-4 h-4 bg-emerald-200 rounded-full mr-3"></div>
+                              <div className="h-4 bg-emerald-200 rounded w-24"></div>
+                            </div>
+                            <div className="text-right">
+                              <div className="h-4 bg-emerald-200 rounded w-20 mb-2"></div>
+                              <div className="h-3 bg-emerald-200 rounded w-16"></div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      BRANCHES.map((branch) => {
+                        const groupMembers = users.filter(
+                          (u) => u.branch === branch && u.role === "member"
+                        );
+                        const totalSavings = groupMembers.reduce(
+                          (sum, u) => sum + (u.totalContributions || 0),
+                          0
+                        );
 
-                      return (
-                        <div
-                          key={branch}
-                          className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
-                        >
-                          <div className="flex items-center">
-                            <div
-                              className={`w-4 h-4 rounded-full mr-3 ${getBranchColorClass(branch)}`}
-                              aria-hidden="true"
-                            />
-                            <span className="font-medium text-gray-900 capitalize">
-                              {branch} Branch
-                            </span>
+                        return (
+                          <div
+                            key={branch}
+                            className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                          >
+                            <div className="flex items-center">
+                              <div
+                                className={`w-4 h-4 rounded-full mr-3 ${getBranchColorClass(branch)}`}
+                                aria-hidden="true"
+                              />
+                              <span className="font-medium text-gray-900 capitalize">
+                                {branch} Branch
+                              </span>
+                            </div>
+                            <div className="text-right">
+                              <p className="font-medium text-gray-900">
+                                {groupMembers.length} {groupMembers.length === 1 ? "member" : "members"}
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                €{totalSavings.toLocaleString()}
+                              </p>
+                            </div>
                           </div>
-                          <div className="text-right">
-                            <p className="font-medium text-gray-900">
-                              {groupMembers.length} {groupMembers.length === 1 ? "member" : "members"}
-                            </p>
-                            <p className="text-sm text-gray-500">
-                              €{totalSavings.toLocaleString()}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })
+                    )}
                   </div>
                 </div>
               </div>
