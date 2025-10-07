@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { fetchMemberShares } from "../../utils/api"; // adjust path if needed
+import { fetchMemberShares } from "../../utils/api";
+import { Bars } from "react-loader-spinner";
 
 type MemberShare = {
   id: string;
@@ -11,8 +12,54 @@ type MemberShare = {
   interestToBeEarned: number;
 };
 
+const SharesTableSkeleton = () => (
+  <div className="animate-pulse">
+    {/* Stats Skeleton */}
+    <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-8 gap-4">
+      <div>
+        <div className="h-6 w-48 bg-gray-200 rounded mb-2"></div>
+        <div className="h-8 w-32 bg-gray-200 rounded"></div>
+      </div>
+      <div>
+        <div className="h-6 w-48 bg-gray-200 rounded mb-2"></div>
+        <div className="h-8 w-32 bg-gray-200 rounded"></div>
+      </div>
+    </div>
+
+    {/* Table Skeleton */}
+    <div className="overflow-x-auto rounded-lg border border-gray-100 bg-white shadow">
+      <table className="min-w-full text-sm">
+        <thead className="bg-gray-50">
+          <tr>
+            {[...Array(6)].map((_, i) => (
+              <th key={i} className="text-left py-3 px-4">
+                <div className="h-4 w-24 bg-gray-200 rounded"></div>
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {[...Array(5)].map((_, idx) => (
+            <tr
+              key={idx}
+              className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}
+            >
+              {[...Array(6)].map((_, cellIdx) => (
+                <td key={cellIdx} className="py-3 px-4">
+                  <div className="h-4 w-20 bg-gray-200 rounded"></div>
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+);
+
 const GroupShares: React.FC = () => {
   const [globalStats, setGlobalStats] = useState<MemberShare[] | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const getShares = async () => {
@@ -21,10 +68,25 @@ const GroupShares: React.FC = () => {
         setGlobalStats(data);
       } catch (error) {
         console.error("Failed to fetch member shares", error);
+      } finally {
+        setLoading(false);
       }
     };
     getShares();
   }, []);
+
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-10">
+        <h2 className="text-3xl font-extrabold mb-8 text-emerald-700 text-center drop-shadow">
+          Global Shares & Interest
+        </h2>
+        <div className="bg-gradient-to-br from-emerald-50 via-blue-50 to-purple-50 rounded-xl shadow-lg border border-gray-200 p-8">
+          <SharesTableSkeleton />
+        </div>
+      </div>
+    );
+  }
 
   if (!globalStats) {
     return <div>Loading...</div>;
@@ -97,7 +159,9 @@ const GroupShares: React.FC = () => {
                     <td className="py-3 px-4">
                       {member.totalContribution.toLocaleString()}
                     </td>
-                    <td className="py-3 px-4">{member.sharePercentage.toFixed(2)}%</td>
+                    <td className="py-3 px-4">
+                      {member.sharePercentage.toFixed(2)}%
+                    </td>
                     <td className="py-3 px-4 text-emerald-700 font-bold">
                       {member.interestEarned.toLocaleString(undefined, {
                         maximumFractionDigits: 2,
